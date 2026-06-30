@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>e-Fatura / e-İrsaliye Arşivi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>e-Fatura / e-İrsaliye Arşivi</h1>
+    <nav>
+      <button class="tab-btn active" data-tab="belgeler">Belgeler</button>
+      <button class="tab-btn" data-tab="kalem-arama">Kalem Arama</button>
+      <button class="tab-btn" data-tab="gozden-gecir">Gözden Geçir</button>
+    </nav>
+  </header>
+
+  <!-- BELGELER SEKMESI -->
+  <section id="tab-belgeler" class="tab active">
+    <div class="filters">
+      <input type="date" id="f-tarih-bas" placeholder="Başlangıç tarihi" />
+      <span>–</span>
+      <input type="date" id="f-tarih-bit" placeholder="Bitiş tarihi" />
+      <select id="f-tip">
+        <option value="">Tüm tipler</option>
+        <option value="FATURA">Fatura</option>
+        <option value="IRSALIYE">İrsaliye</option>
+      </select>
+      <input type="text" id="f-satici" placeholder="Satıcı adı..." />
+      <input type="text" id="f-alici" placeholder="Alıcı adı..." />
+      <input type="text" id="f-belge-no" placeholder="Belge no..." />
+      <button id="btn-ara">Ara</button>
+      <button id="btn-temizle">Temizle</button>
+    </div>
+    <div id="belgeler-sonuc"></div>
+    <div id="pagination" class="pagination"></div>
+  </section>
+
+  <!-- KALEM ARAMA SEKMESI -->
+  <section id="tab-kalem-arama" class="tab">
+    <div class="filters">
+      <input type="text" id="kalem-q" placeholder="Ürün/hizmet açıklaması..." />
+      <button id="btn-kalem-ara">Ara</button>
+    </div>
+    <div id="kalem-sonuc"></div>
+  </section>
+
+  <!-- GÖZDEN GEÇİR SEKMESI -->
+  <section id="tab-gozden-gecir" class="tab">
+    <p class="info">Parse durumu ŞÜPHELİ veya HATALI olan belgeler:</p>
+    <div id="gozden-sonuc"></div>
+  </section>
+
+  <!-- BELGE DETAY MODAL -->
+  <div id="modal-overlay" class="hidden">
+    <div id="modal">
+      <button id="modal-kapat">✕</button>
+      <div id="modal-icerik"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

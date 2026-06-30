@@ -1,0 +1,76 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: system-ui, sans-serif; font-size: 14px; background: #f5f5f5; color: #333; }
+
+header { background: #1a56a0; color: white; padding: 12px 20px; display: flex; align-items: center; gap: 24px; }
+header h1 { font-size: 18px; font-weight: 600; }
+nav { display: flex; gap: 6px; }
+
+.tab-btn {
+  background: transparent; border: 1px solid rgba(255,255,255,0.5); color: white;
+  padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 13px;
+}
+.tab-btn.active { background: white; color: #1a56a0; font-weight: 600; }
+.tab-btn:hover:not(.active) { background: rgba(255,255,255,0.15); }
+
+.tab { display: none; padding: 16px 20px; }
+.tab.active { display: block; }
+
+.filters {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  background: white; padding: 12px; border-radius: 6px; margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.filters input, .filters select {
+  border: 1px solid #ccc; border-radius: 4px; padding: 5px 8px; font-size: 13px;
+}
+.filters button {
+  background: #1a56a0; color: white; border: none; border-radius: 4px;
+  padding: 5px 14px; cursor: pointer; font-size: 13px;
+}
+.filters button:hover { background: #154080; }
+#btn-temizle { background: #666; }
+#btn-temizle:hover { background: #444; }
+
+table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+th { background: #eef2f8; padding: 8px 10px; text-align: left; font-size: 12px; font-weight: 600; color: #555; border-bottom: 1px solid #ddd; white-space: nowrap; }
+td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f7f9fd; cursor: pointer; }
+
+.badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.badge-BASARILI { background: #d1fae5; color: #065f46; }
+.badge-SUPHELI  { background: #fef3c7; color: #92400e; }
+.badge-HATALI   { background: #fee2e2; color: #991b1b; }
+
+.pagination { margin-top: 10px; display: flex; gap: 6px; justify-content: flex-end; }
+.pagination button { background: white; border: 1px solid #ccc; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.pagination button.active { background: #1a56a0; color: white; border-color: #1a56a0; }
+.pagination button:disabled { opacity: 0.4; cursor: default; }
+
+.info { color: #666; margin-bottom: 12px; }
+.empty { text-align: center; color: #aaa; padding: 40px; }
+.error { color: #c0392b; background: #fdecea; border: 1px solid #f5c6cb; border-radius: 4px; padding: 10px 14px; }
+
+/* Modal */
+#modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 16px; z-index: 100; overflow-y: auto;
+}
+#modal-overlay.hidden { display: none; }
+#modal {
+  background: white; border-radius: 8px; max-width: 900px; width: 100%;
+  padding: 24px; position: relative;
+}
+#modal-kapat {
+  position: absolute; top: 12px; right: 14px;
+  background: none; border: none; font-size: 18px; cursor: pointer; color: #666;
+}
+#modal-kapat:hover { color: #333; }
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-bottom: 20px; }
+.detail-grid dt { font-size: 11px; color: #888; margin-bottom: 1px; }
+.detail-grid dd { font-size: 13px; font-weight: 500; }
+
+.detail-section-title { font-size: 13px; font-weight: 600; color: #1a56a0; margin: 16px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }

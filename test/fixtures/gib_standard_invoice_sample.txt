@@ -1,0 +1,47 @@
+                                                               E-Fatura
+
+
+AHMET YILMAZ
+ÖRNEK MAHALLESİ, 10 SK. NO: 5 İÇ KAPI
+NO: 2 ÖRNEKİLÇE/ÖRNEKŞEHİR
+Örnekilçe/ Örnekşehir
+Tel: +905551112233
+Vergi Dairesi: Örnek Vergi Dairesi
+TCKN: 12345678901
+
+
+SAYIN
+Örnek Sistem Bilişim Danışmanlık Yazılım Donanım
+A.Ş.                                                                                        Özelleştirme No:      TR1.2.1
+200 Sokak No:1 D:1 Örnekmah - Örnekilçe - Örnekşehir                                        Senaryo:              TICARIFATURA
+ Örnekilçe / Örnekşehir                                                                     Fatura Tipi:          SATIS
+Türkiye                                                                                     Fatura No:            RF02026000000007
+                                                                                            Düzenleme Tarihi: 30-06-2026
+E-Posta: muhasebe@ornekbilisim.com
+                                                                                            Düzenleme
+Vergi Dairesi: Merkez Vergi Dairesi                                                                               10:09:13
+                                                                                            Zamanı:
+VKN: 1234567890
+
+ETTN: a1b2c3d4-e5f6-47a8-9b0c-d1e2f3a4b5c6
+Sıra
+           Malzeme/Hizmet Açıklaması               Miktar      Birim Fiyat     KDV Oranı        KDV Tutarı        Mal Hizmet Tutarı
+No
+       Siber Güvenlik Danışmanlığı Hizmet
+1                                                     1 Adet       15.000 TL         %20,00         3.000,00 TL             15.000,00 TL
+       Bedeli
+
+
+
+
+                                                                                           Mal Hizmet Toplam Tutarı         15.000,00 TL
+                                                                                              Hesaplanan KDV(%20)            3.000,00 TL
+                                                                                       Vergiler Dahil Toplam Tutar          18.000,00 TL
+                                                                                                    Ödenecek Tutar          18.000,00 TL
+
+
+
+
+Yalnız: On Sekiz Bin Türk Lirası
+
+İrsaliye yerine geçer.

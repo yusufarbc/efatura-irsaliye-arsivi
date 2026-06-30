@@ -1,0 +1,9 @@
+node_modules/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+belgeler/
+/data/
+.env
+.claude/

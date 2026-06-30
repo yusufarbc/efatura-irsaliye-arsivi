@@ -1,0 +1,35 @@
+{
+  "header": {
+    "belge_tipi": "FATURA",
+    "belge_no": "RF02026000000007",
+    "ettn": "a1b2c3d4-e5f6-47a8-9b0c-d1e2f3a4b5c6",
+    "senaryo": "TICARIFATURA",
+    "fatura_tipi": "SATIS",
+    "duzenleme_tarihi": "2026-06-30",
+    "duzenleme_zamani": "10:09:13",
+    "satici_unvan": "AHMET YILMAZ",
+    "satici_tckn": "12345678901",
+    "satici_vergi_dairesi": "Örnek Vergi Dairesi",
+    "satici_telefon": "+905551112233",
+    "alici_unvan": "Örnek Sistem Bilişim Danışmanlık Yazılım Donanım A.Ş.",
+    "alici_vkn_tckn": "1234567890",
+    "alici_eposta": "muhasebe@ornekbilisim.com",
+    "mal_hizmet_toplam_tutari": 15000.00,
+    "hesaplanan_kdv_toplam": 3000.00,
+    "vergiler_dahil_toplam_tutar": 18000.00,
+    "odenecek_tutar": 18000.00,
+    "notlar": "Yalnız: On Sekiz Bin Türk Lirası İrsaliye yerine geçer."
+  },
+  "items": [
+    {
+      "sira_no": 1,
+      "aciklama": "Siber Güvenlik Danışmanlığı Hizmet Bedeli",
+      "miktar": 1,
+      "birim": "Adet",
+      "birim_fiyat": 15000.00,
+      "kdv_orani": 20,
+      "kdv_tutari": 3000.00,
+      "mal_hizmet_tutari": 15000.00
+    }
+  ]
+}

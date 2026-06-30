@@ -1,0 +1,19 @@
+{
+  "name": "efatura-irsaliye-arsivi",
+  "version": "1.0.0",
+  "description": "GİB e-Fatura/e-İrsaliye PDF arşiv ve sorgulama sistemi",
+  "main": "src/server/app.js",
+  "scripts": {
+    "start": "node --experimental-sqlite src/server/app.js",
+    "test": "node --experimental-sqlite --test test/*.test.js",
+    "ingest": "node --experimental-sqlite src/ingest/ingestRunner.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.5"
+  },
+  "license": "MIT"
+}
