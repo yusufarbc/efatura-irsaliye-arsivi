@@ -165,9 +165,21 @@ kullanır. Yeni bir entegratör formatı geldiğinde mevcut extractor'lara dokun
 yeni bir dosya eklenir — bu da "yüzlerce belge, karışık şablon" senaryosuna
 ölçeklenebilir bir çözüm sağlar.
 
-## Veritabanı Şeması (taslak)
+## Veritabanı Şeması
+
+`schema.sql` başlangıç (ilk kurulum) şemasını tanımlar; sonraki tüm yapısal
+değişiklikler `db/migrations/` altına numaralı `.sql` dosyaları olarak eklenir
+ve `src/db/db.js` içindeki basit migration runner tarafından (henüz
+uygulanmamışsa) otomatik çalıştırılır — `schema.sql` asla elle bozulmaz.
+
+`0001_taraflar.sql` migration'ı ile satıcı/alıcı bilgisi (VKN/TCKN ile) ayrı
+bir `taraflar` tablosuna taşındı: aynı taraf (aynı VKN/TCKN) birden çok
+faturada geçtiğinde unvan/adres/vergi dairesi her belgede tekrar yazılmaz,
+`documents.satici_id` / `documents.alici_id` o tek satırı referans eder
+(bire-çok ilişki: bir taraf → birçok fatura).
 
 ```sql
+-- schema.sql (ilk kurulum)
 CREATE TABLE documents (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   belge_tipi TEXT NOT NULL CHECK(belge_tipi IN ('FATURA','IRSALIYE')),
@@ -177,18 +189,6 @@ CREATE TABLE documents (
   duzenleme_zamani TEXT,
   senaryo TEXT,
   fatura_tipi TEXT,
-  satici_unvan TEXT,
-  satici_vkn_tckn TEXT,
-  satici_vergi_dairesi TEXT,
-  satici_adres TEXT,
-  satici_eposta TEXT,
-  satici_telefon TEXT,
-  alici_unvan TEXT,
-  alici_vkn_tckn TEXT,
-  alici_vergi_dairesi TEXT,
-  alici_adres TEXT,
-  alici_eposta TEXT,
-  alici_telefon TEXT,
   mal_hizmet_toplam_tutari REAL,
   hesaplanan_kdv_toplam REAL,
   vergiler_dahil_toplam_tutar REAL,
@@ -215,10 +215,27 @@ CREATE TABLE items (
 
 CREATE INDEX idx_documents_ettn ON documents(ettn);
 CREATE INDEX idx_documents_tarih ON documents(duzenleme_tarihi);
-CREATE INDEX idx_documents_satici ON documents(satici_unvan);
-CREATE INDEX idx_documents_alici ON documents(alici_unvan);
 CREATE INDEX idx_items_aciklama ON items(aciklama);
 CREATE INDEX idx_items_document ON items(document_id);
+```
+
+```sql
+-- db/migrations/0001_taraflar.sql (satıcı/alıcı normalize edilmesi)
+CREATE TABLE taraflar (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  unvan TEXT NOT NULL,
+  vkn_tckn TEXT UNIQUE,
+  vergi_dairesi TEXT,
+  adres TEXT,
+  eposta TEXT,
+  telefon TEXT,
+  olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE documents ADD COLUMN satici_id INTEGER REFERENCES taraflar(id);
+ALTER TABLE documents ADD COLUMN alici_id INTEGER REFERENCES taraflar(id);
+-- satici_unvan, satici_vkn_tckn, ... alici_telefon sütunları documents'tan
+-- kaldırıldı (bkz. migration dosyasının tamamı)
 ```
 
 `ettn` UNIQUE olduğu için aynı belgenin tekrar yüklenmesi (re-ingest) durumunda

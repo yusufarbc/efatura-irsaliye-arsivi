@@ -107,6 +107,46 @@ function findPdfs(dir) {
   return results;
 }
 
+/**
+ * VKN/TCKN'ye göre taraflar tablosunda arar; varsa günceller (yeni bilgi
+ * varsa doldurur), yoksa oluşturur. Böylece aynı satıcı/alıcı her faturada
+ * tekrar tekrar yazılmaz. VKN/TCKN yoksa eşleştirme güvenilir olmadığından
+ * her seferinde yeni bir kayıt açılır.
+ */
+function findOrCreateTaraf(db, fields) {
+  const unvan = fields.unvan ?? null;
+  const vkn_tckn = fields.vkn_tckn ?? null;
+  const vergi_dairesi = fields.vergi_dairesi ?? null;
+  const adres = fields.adres ?? null;
+  const eposta = fields.eposta ?? null;
+  const telefon = fields.telefon ?? null;
+
+  if (!unvan && !vkn_tckn) return null;
+
+  if (vkn_tckn) {
+    const existing = db.prepare('SELECT id FROM taraflar WHERE vkn_tckn = ?').get(vkn_tckn);
+    if (existing) {
+      db.prepare(`
+        UPDATE taraflar SET
+          unvan = :unvan,
+          vergi_dairesi = COALESCE(:vergi_dairesi, vergi_dairesi),
+          adres = COALESCE(:adres, adres),
+          eposta = COALESCE(:eposta, eposta),
+          telefon = COALESCE(:telefon, telefon)
+        WHERE id = :id
+      `).run({ unvan, vergi_dairesi, adres, eposta, telefon, id: existing.id });
+      return existing.id;
+    }
+  }
+
+  const result = db.prepare(`
+    INSERT INTO taraflar (unvan, vkn_tckn, vergi_dairesi, adres, eposta, telefon)
+    VALUES (:unvan, :vkn_tckn, :vergi_dairesi, :adres, :eposta, :telefon)
+  `).run({ unvan, vkn_tckn, vergi_dairesi, adres, eposta, telefon });
+
+  return Number(result.lastInsertRowid);
+}
+
 function upsertDocument(db, header, items) {
   // Aynı ETTN varsa sil-yeniden-yaz
   if (header.ettn) {
@@ -116,19 +156,32 @@ function upsertDocument(db, header, items) {
     }
   }
 
+  const satici_id = findOrCreateTaraf(db, {
+    unvan: header.satici_unvan,
+    vkn_tckn: header.satici_vkn_tckn,
+    vergi_dairesi: header.satici_vergi_dairesi,
+    adres: header.satici_adres,
+    eposta: header.satici_eposta,
+    telefon: header.satici_telefon,
+  });
+  const alici_id = findOrCreateTaraf(db, {
+    unvan: header.alici_unvan,
+    vkn_tckn: header.alici_vkn_tckn,
+    vergi_dairesi: header.alici_vergi_dairesi,
+    adres: header.alici_adres,
+    eposta: header.alici_eposta,
+    telefon: header.alici_telefon,
+  });
+
   const insertDoc = db.prepare(`
     INSERT INTO documents (
       belge_tipi, belge_no, ettn, duzenleme_tarihi, duzenleme_zamani,
-      senaryo, fatura_tipi,
-      satici_unvan, satici_vkn_tckn, satici_vergi_dairesi, satici_adres, satici_eposta, satici_telefon,
-      alici_unvan, alici_vkn_tckn, alici_vergi_dairesi, alici_adres, alici_eposta, alici_telefon,
+      senaryo, fatura_tipi, satici_id, alici_id,
       mal_hizmet_toplam_tutari, hesaplanan_kdv_toplam, vergiler_dahil_toplam_tutar, odenecek_tutar,
       notlar, kaynak_dosya, parse_durumu, parse_notu
     ) VALUES (
       :belge_tipi, :belge_no, :ettn, :duzenleme_tarihi, :duzenleme_zamani,
-      :senaryo, :fatura_tipi,
-      :satici_unvan, :satici_vkn_tckn, :satici_vergi_dairesi, :satici_adres, :satici_eposta, :satici_telefon,
-      :alici_unvan, :alici_vkn_tckn, :alici_vergi_dairesi, :alici_adres, :alici_eposta, :alici_telefon,
+      :senaryo, :fatura_tipi, :satici_id, :alici_id,
       :mal_hizmet_toplam_tutari, :hesaplanan_kdv_toplam, :vergiler_dahil_toplam_tutar, :odenecek_tutar,
       :notlar, :kaynak_dosya, :parse_durumu, :parse_notu
     )
@@ -141,7 +194,25 @@ function upsertDocument(db, header, items) {
 
   db.exec('BEGIN');
   try {
-    const result = insertDoc.run(header);
+    const result = insertDoc.run({
+      belge_tipi: header.belge_tipi,
+      belge_no: header.belge_no,
+      ettn: header.ettn,
+      duzenleme_tarihi: header.duzenleme_tarihi,
+      duzenleme_zamani: header.duzenleme_zamani,
+      senaryo: header.senaryo,
+      fatura_tipi: header.fatura_tipi,
+      satici_id,
+      alici_id,
+      mal_hizmet_toplam_tutari: header.mal_hizmet_toplam_tutari,
+      hesaplanan_kdv_toplam: header.hesaplanan_kdv_toplam,
+      vergiler_dahil_toplam_tutar: header.vergiler_dahil_toplam_tutar,
+      odenecek_tutar: header.odenecek_tutar,
+      notlar: header.notlar,
+      kaynak_dosya: header.kaynak_dosya,
+      parse_durumu: header.parse_durumu,
+      parse_notu: header.parse_notu,
+    });
     const document_id = Number(result.lastInsertRowid);
     for (const item of items) {
       insertItem.run({ ...item, document_id });

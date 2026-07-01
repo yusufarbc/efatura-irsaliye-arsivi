@@ -22,9 +22,11 @@ router.get('/', (req, res) => {
     SELECT i.id, i.sira_no, i.aciklama, i.miktar, i.birim, i.birim_fiyat,
            i.kdv_orani, i.kdv_tutari, i.mal_hizmet_tutari,
            d.id as document_id, d.belge_no, d.duzenleme_tarihi,
-           d.satici_unvan, d.alici_unvan, d.parse_durumu
+           s.unvan as satici_unvan, a.unvan as alici_unvan, d.parse_durumu
     FROM items i
     JOIN documents d ON d.id = i.document_id
+    LEFT JOIN taraflar s ON s.id = d.satici_id
+    LEFT JOIN taraflar a ON a.id = d.alici_id
     WHERE i.aciklama LIKE ?
     ORDER BY d.duzenleme_tarihi DESC, d.id DESC
     LIMIT ? OFFSET ?

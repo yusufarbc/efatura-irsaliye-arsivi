@@ -62,6 +62,37 @@ npm run ingest -- --dir ./belgeler --dry-run
 npm start
 ```
 
+## Windows'ta Servis Olarak Çalıştırma
+
+Web sunucusunun bilgisayar her açıldığında otomatik başlaması için
+`node-windows` ile Windows Service olarak kaydedilebilir. Aşağıdaki komutlar
+**Yönetici (Administrator)** PowerShell'den çalıştırılmalıdır:
+
+```powershell
+# Servisi kur ve başlat (EFaturaArsivServisi)
+npm run service:install
+
+# Servisi kaldır
+npm run service:uninstall
+```
+
+Kurulum farklı bir port istiyorsa: `$env:PORT=3001; npm run service:install`
+
+İsteğe bağlı olarak, `ingestRunner.js`'i her gün belirli bir saatte otomatik
+çalıştırmak için Windows Görev Zamanlayıcı'ya (Task Scheduler) bir görev
+eklenebilir — bu sürekli çalışan bir servis değil, periyodik bir toplu iştir:
+
+```powershell
+# Varsayılan: her gün 07:00, ./belgeler klasörü
+npm run task:install-ingest
+
+# Farklı klasör/saat ile
+$env:INGEST_DIR="D:\belgeler"; $env:INGEST_TIME="23:00"; npm run task:install-ingest
+
+# Kaldırmak için
+npm run task:uninstall-ingest
+```
+
 ## Proje Yapısı
 
 Detaylı mimari, veritabanı şeması ve geliştirme yol haritası için bkz.

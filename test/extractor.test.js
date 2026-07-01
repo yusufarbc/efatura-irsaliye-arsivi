@@ -62,6 +62,27 @@ test('gibStandardInvoice: satici_unvan doğru', () => {
   assert.equal(result.header.satici_unvan, expected.header.satici_unvan);
 });
 
+test('gibStandardInvoice: satici_vkn_tckn ve satici_vergi_dairesi doğru', () => {
+  result = result || extract(sampleText);
+  assert.equal(result.header.satici_vkn_tckn, expected.header.satici_vkn_tckn);
+  assert.equal(result.header.satici_vergi_dairesi, expected.header.satici_vergi_dairesi);
+});
+
+test('gibStandardInvoice: alici_unvan (çok satırlı, ör. "A.Ş." eki) doğru', () => {
+  result = result || extract(sampleText);
+  assert.equal(result.header.alici_unvan, expected.header.alici_unvan);
+});
+
+test('gibStandardInvoice: alici_vkn_tckn doğru (satıcı TCKN, tek VKN alıcıya ait)', () => {
+  result = result || extract(sampleText);
+  assert.equal(result.header.alici_vkn_tckn, expected.header.alici_vkn_tckn);
+});
+
+test('gibStandardInvoice: alici_vergi_dairesi sağdaki sütuna taşmadan doğru', () => {
+  result = result || extract(sampleText);
+  assert.equal(result.header.alici_vergi_dairesi, expected.header.alici_vergi_dairesi);
+});
+
 test('gibStandardInvoice: senaryo ve fatura_tipi doğru', () => {
   result = result || extract(sampleText);
   assert.equal(result.header.senaryo, expected.header.senaryo);
@@ -86,6 +107,11 @@ test('gibStandardInvoice: kalem kdv_orani doğru', () => {
 test('gibStandardInvoice: kalem birim doğru', () => {
   result = result || extract(sampleText);
   assert.equal(result.items[0].birim, expected.items[0].birim);
+});
+
+test('gibStandardInvoice: kalem aciklama doğru (sıra no kalem satırıyla aynı satırda)', () => {
+  result = result || extract(sampleText);
+  assert.equal(result.items[0].aciklama, expected.items[0].aciklama);
 });
 
 test('gibStandardInvoice: tanımayan metin null döndürmeli', () => {

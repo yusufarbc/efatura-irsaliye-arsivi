@@ -27,7 +27,8 @@ async function pdfToText(pdfPath) {
       encoding: 'utf8',
       maxBuffer: 10 * 1024 * 1024,
     });
-    return stdout;
+    // Windows'taki pdftotext.exe CRLF üretir; extractor regex'leri LF varsayıyor.
+    return stdout.replace(/\r\n/g, '\n');
   } catch (err) {
     if (err.code === 'ENOENT') {
       throw new Error(

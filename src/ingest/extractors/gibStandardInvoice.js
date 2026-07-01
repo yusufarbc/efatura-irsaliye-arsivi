@@ -2,6 +2,12 @@
 
 const { parseTrNumber, parseTrPercent, parseTrDate } = require('../normalize');
 
+// "-layout" çıktısında iki sütunlu satırlarda etiketin değeri ile sağdaki
+// başka bir sütunun metni aynı fiziksel satıra düşebilir (örn. "Vergi Dairesi: X
+// Örnek Dairesi                    10:09:13"). Değeri, tek boşlukla ayrılmış
+// kelimeler olarak alıp 2+ boşluk (bir sonraki sütuna geçiş) veya satır sonunda durdur.
+const VERGI_DAIRESI_RE = /Vergi Dairesi\s*:\s*(\S+(?:[ \t]+\S+)*?)(?:[ \t]{2,}|\n|$)/;
+
 /**
  * GİB standart e-Fatura PDF formatını (pdftotext -layout çıktısı) parse eder.
  * Birden fazla entegratör bu formatı kullanabilir (Logo, Mikro, Foriba vb.
@@ -39,18 +45,22 @@ function extract(text) {
   // --- Satıcı (sayfanın sol üstü, TCKN veya VKN: ile identify edilir) ---
   // Satıcı = sayfanın sol üst bölümü, SAYIN kelimesinden önce gelen unvan bloku
   header.satici_unvan = extractSaticiUnvan(lines);
-  header.satici_tckn = matchField(text, /TCKN\s*:\s*(\d+)/);
+  const saticiTckn = matchField(text, /TCKN\s*:\s*(\d+)/);
   // VKN'nin ikincisi satıcıya ait olabilir — sayfada iki VKN bulunabilir
   const vknMatches = [...text.matchAll(/VKN\s*:\s*(\d+)/g)];
   // İlk VKN: alıcı (SAYIN bloğu içindeki), ikinci: satıcı (sol üst)
   // Ama düzen değişken olduğundan: TCKN varsa satıcı gerçek kişi; VKN varsa tüzel
-  header.satici_vkn_tckn = header.satici_tckn || (vknMatches.length >= 2 ? vknMatches[1][1] : vknMatches[0]?.[1] || null);
-  header.satici_vergi_dairesi = matchField(text, /Vergi Dairesi\s*:\s*(.+?)(?:\n|$)/);
+  header.satici_vkn_tckn = saticiTckn || (vknMatches.length >= 2 ? vknMatches[1][1] : vknMatches[0]?.[1] || null);
+  header.satici_vergi_dairesi = matchField(text, VERGI_DAIRESI_RE);
   header.satici_telefon = matchField(text, /Tel\s*:\s*(\+?\d[\d\s]+)/);
 
   // --- Alıcı (SAYIN bloğu) ---
   header.alici_unvan = extractAliciUnvan(lines);
-  header.alici_vkn_tckn = vknMatches.length >= 2 ? vknMatches[0][1] : null;
+  // İki VKN varsa ilki alıcıya ait; tek VKN varsa ve satıcı zaten TCKN ile
+  // tanımlıysa (gerçek kişi satıcı), o tek VKN alıcıya (tüzel kişi) aittir.
+  header.alici_vkn_tckn = vknMatches.length >= 2
+    ? vknMatches[0][1]
+    : (saticiTckn && vknMatches.length === 1 ? vknMatches[0][1] : null);
   header.alici_vergi_dairesi = extractAliciVergiDairesi(lines);
   header.alici_eposta = matchField(text, /E-Posta\s*:\s*(\S+@\S+)/i);
 
@@ -121,11 +131,13 @@ function extractAliciUnvan(lines) {
     // Alıcı unvanı çok satırlı olabilir (ör. "Örnek Sistem... A.Ş.")
     // İlk anlamlı satırı al, sonraki kısa devam satırlarını da ekle
     let unvan = t;
-    // Sonraki satır sadece kısa bir devam parçasıysa (tek kelime, A.Ş. gibi) ekle
+    // Sonraki satır, sağdaki başka bir sütunla ("Özelleştirme No: ..." gibi)
+    // aynı fiziksel satırda gelebilir — sadece 2+ boşluktan önceki sol sütun
+    // parçasına (ör. "A.Ş.") bakılmalı, satırın tamamına değil.
     if (i + 1 < lines.length) {
-      const next = lines[i + 1].trim();
-      if (next && next.length < 20 && /^[A-ZÇĞİÖŞÜa-zçğışöşü.\s]+$/.test(next) && !/:\s/.test(next)) {
-        unvan += ' ' + next;
+      const nextLeftCol = lines[i + 1].split(/[ \t]{2,}/)[0].trim();
+      if (nextLeftCol && nextLeftCol.length < 20 && /^[A-ZÇĞİÖŞÜa-zçğışöşü.\s]+$/.test(nextLeftCol) && !/:\s/.test(nextLeftCol)) {
+        unvan += ' ' + nextLeftCol;
       }
     }
     return unvan;
@@ -141,7 +153,7 @@ function extractAliciVergiDairesi(lines) {
   let sayinIdx = lines.findIndex((l) => /SAYIN/.test(l));
   if (sayinIdx === -1) return null;
   for (let i = sayinIdx; i < Math.min(sayinIdx + 30, lines.length); i++) {
-    const m = lines[i].match(/Vergi Dairesi\s*:\s*(.+)/);
+    const m = lines[i].match(VERGI_DAIRESI_RE);
     if (m) return m[1].trim();
   }
   return null;
@@ -154,29 +166,58 @@ function extractAliciVergiDairesi(lines) {
  * Örnek satır (tek satırda):
  *   "1                                                     1 Adet       15.000 TL         %20,00         3.000,00 TL             15.000,00 TL"
  *
- * Regex: sıra_no? ... miktar birim birim_fiyat TL kdv_oran% kdv_tutar TL mal_hizmet_tutar TL
+ * Sıra no ("1") bu satırın en başında, itemLineRe'nin eşleştiği kısımdan önce
+ * duruyor — ayrı bir satır olarak gelmiyor. Açıklama ("Siber Güvenlik
+ * Danışmanlığı Hizmet Bedeli") ise kalem satırının hem ÖNCESİNE hem SONRASINA
+ * bölünmüş halde yayılabiliyor. Bu yüzden açıklama, kalem satırından önceki
+ * düz metin satırları ile hemen sonraki düz metin satırları birleştirilerek
+ * oluşturuluyor.
+ *
+ * Not: Aynı anda birden fazla kalem varsa ve aralarında bağımsız bir sıra no
+ * satırı yoksa (her kalemin sıra no'su da kendi veri satırının başında ise),
+ * bir kalemin son açıklama satırı ile bir sonrakinin ilk açıklama satırını
+ * ayırt etmenin güvenilir bir yolu yok — bu durumda açıklama her iki kaleme de
+ * (fazladan) eklenebilir. Şimdiye kadar gözlemlenen tüm gerçek örnekler tek
+ * kalemli olduğu için bu kenar durumu netleşmedi; çok kalemli gerçek bir örnek
+ * geldiğinde tekrar gözden geçirilmeli.
  */
 function extractItems(lines) {
   const items = [];
 
   // Kalem veri satırı regex'i — tüm sayısal alanları tek seferde yakalar
-  // Gruplar: [sira_no, aciklama_prefix, miktar, birim, birim_fiyat, kdv_orani, kdv_tutari, mal_hizmet_tutari]
+  // Gruplar: [miktar, birim, birim_fiyat, kdv_orani, kdv_tutari, mal_hizmet_tutari]
   const itemLineRe = /(\d[\d.,]*)\s+(Adet|Kg|KG|Litre|Lt|m²|m2|Metre|Ton|Paket|Kutu|Hizmet|Saat)\s+([\d.,]+)\s*TL\s+%?([\d.,]+)\s+([\d.,]+)\s*TL\s+([\d.,]+)\s*TL/i;
 
-  // Sıra no satırı (sadece rakam, opsiyonel boşluk)
+  // Sıra no satırı (sadece rakam, opsiyonel boşluk) — bazı şablonlarda ayrı satırda gelebilir
   const siraNoRe = /^\s*(\d+)\s*$/;
 
-  // Başlık satırını atlamak için
-  const headerLineRe = /Sıra|Malzeme|Açıklama|Miktar|Birim Fiyat|KDV Oranı|KDV Tutarı|Mal Hizmet/;
+  // Tablo başlığı satırlarını atlamak için ("Sıra" / "No" iki satıra bölünmüş olabilir)
+  const headerLineRe = /Sıra|^No$|Malzeme|Açıklama|Miktar|Birim Fiyat|KDV Oranı|KDV Tutarı|Mal Hizmet/;
 
-  let pendingAciklama = [];
-  let pendingSiraNo = null;
+  const totalsLineRe = /Toplam Tutar|Hesaplanan KDV|Vergiler Dahil|[ÖO]denecek Tutar|Yaln[ıi]z|[İI]rsaliye yerine/i;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  let leadingLines = [];   // sıradaki kalemden önce biriken açıklama satırları
+  let pendingSiraNo = null; // bağımsız bir sıra no satırı görüldüyse
+  let lastItem = null;      // az önce eklenen kalem — devam satırlarını buna ekle
+  let inTable = false;      // kalem tablosu başlığı görülmeden hiçbir satır açıklama sayılmaz
+
+  for (const line of lines) {
     const stripped = line.trim();
 
-    if (!stripped || headerLineRe.test(stripped)) {
+    if (headerLineRe.test(stripped)) {
+      inTable = true;
+      continue;
+    }
+
+    if (!stripped || !inTable) {
+      continue;
+    }
+
+    if (totalsLineRe.test(stripped)) {
+      // Kalem tablosu bitti, açık kalan her şeyi kapat
+      leadingLines = [];
+      pendingSiraNo = null;
+      lastItem = null;
       continue;
     }
 
@@ -184,11 +225,18 @@ function extractItems(lines) {
     if (itemMatch) {
       const [, miktar, birim, birim_fiyat, kdv_orani, kdv_tutari, mal_hizmet_tutari] = itemMatch;
 
-      // Açıklama: sıra no ile bu kalem satırı arasındaki metin
-      const aciklama = pendingAciklama.join(' ').replace(/\s+/g, ' ').trim();
+      // Sıra no ayrı bir satırda gelmediyse, kalem satırının eşleşmeden önceki
+      // kısmında (satır başında) bağımsız bir rakam olarak durabilir.
+      let siraNo = pendingSiraNo;
+      if (siraNo == null) {
+        const prefix = line.slice(0, itemMatch.index).trim();
+        if (/^\d+$/.test(prefix)) siraNo = prefix;
+      }
 
-      items.push({
-        sira_no: pendingSiraNo != null ? parseInt(pendingSiraNo, 10) : items.length + 1,
+      const aciklama = leadingLines.join(' ').replace(/\s+/g, ' ').trim();
+
+      const item = {
+        sira_no: siraNo != null ? parseInt(siraNo, 10) : items.length + 1,
         aciklama: aciklama || null,
         miktar: parseTrNumber(miktar),
         birim: birim.trim(),
@@ -196,36 +244,32 @@ function extractItems(lines) {
         kdv_orani: parseTrPercent(kdv_orani),
         kdv_tutari: parseTrNumber(kdv_tutari),
         mal_hizmet_tutari: parseTrNumber(mal_hizmet_tutari),
-      });
+      };
+      items.push(item);
 
-      pendingAciklama = [];
+      leadingLines = [];
       pendingSiraNo = null;
+      lastItem = item;
       continue;
     }
 
-    // Sıra no satırı mı?
+    // Bağımsız bir sıra no satırı mı? Yeni kalem başlıyor demektir —
+    // önceki kalemin devam açıklaması artık kapanır.
     const siraMatch = stripped.match(siraNoRe);
     if (siraMatch && parseInt(siraMatch[1], 10) <= 999) {
+      lastItem = null;
       pendingSiraNo = siraMatch[1];
-      pendingAciklama = [];
+      leadingLines = [];
       continue;
     }
 
-    // Tablo başlığı veya tutar özeti satırları (kalem dışı) — bunları atla
-    if (
-      /Toplam Tutar|Hesaplanan KDV|Vergiler Dahil|[ÖO]denecek Tutar|Yaln[ıi]z|[İI]rsaliye yerine/i.test(stripped)
-    ) {
-      pendingAciklama = [];
-      pendingSiraNo = null;
-      continue;
-    }
-
-    // Eğer sıra no bekliyorsak (pendingSiraNo set), bu satır açıklamanın parçası
-    if (pendingSiraNo != null) {
-      // Çok uzun değilse ve sayısal olmayan içerik varsa açıklamaya ekle
-      if (stripped.length > 0 && stripped.length < 200) {
-        pendingAciklama.push(stripped);
+    // Düz metin satırı: hem bir önceki kalemin devamı olabilir hem de
+    // sıradaki kalemin açıklamasının başlangıcı — ikisine de ekleniyor.
+    if (stripped.length > 0 && stripped.length < 200) {
+      if (lastItem) {
+        lastItem.aciklama = lastItem.aciklama ? `${lastItem.aciklama} ${stripped}` : stripped;
       }
+      leadingLines.push(stripped);
     }
   }
 
