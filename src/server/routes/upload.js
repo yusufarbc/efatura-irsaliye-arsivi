@@ -31,9 +31,14 @@ router.post('/', rawPdf, async (req, res, next) => {
       return res.status(400).json({ error: 'Geçerli bir PDF dosyası değil' });
     }
 
-    // Dosya adı temizliği: path bileşenlerini at, tehlikeli karakterleri değiştir
+    // Dosya adı temizliği: path bileşenlerini at, tehlikeli karakterleri değiştir.
+    // path.win32.basename hem '/' hem '\' ayraçlarını işler — POSIX'te de
+    // Windows istemciden gelen 'a\..\b.pdf' benzeri adlar güvenle kırpılır.
     const ham = String(req.query.filename || 'belge.pdf');
-    let ad = path.basename(ham).replace(/[^\w.\- çğıöşüÇĞİÖŞÜ]/g, '_').trim();
+    let ad = path.win32.basename(ham)
+      .replace(/[^\w.\- çğıöşüÇĞİÖŞÜ]/g, '_')
+      .replace(/^\.+/, '')
+      .trim();
     if (!ad || ad === '.pdf') ad = 'belge.pdf';
     if (!/\.pdf$/i.test(ad)) ad += '.pdf';
 
