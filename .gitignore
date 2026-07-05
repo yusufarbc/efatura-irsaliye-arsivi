@@ -7,3 +7,10 @@ belgeler/
 /data/
 .env
 .claude/
+
+# node-windows servis çalışma artıkları (exe, wrapper konfigürasyonu, loglar)
+src/server/daemon/
+
+# paketleme çıktıları
+/dist/
+*.log

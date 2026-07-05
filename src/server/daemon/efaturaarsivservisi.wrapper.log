@@ -1,2 +1,0 @@
-2026-07-05 14:01:10 - Starting C:\Program Files\nodejs\node.exe  --experimental-sqlite C:\Users\yusuf\efatura-irsaliye-arsivi\node_modules\node-windows\lib\wrapper.js --file C:\Users\yusuf\efatura-irsaliye-arsivi\src\server\app.js --scriptoptions= --log "EFaturaArsivServisi wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
-2026-07-05 14:01:10 - Started 7240

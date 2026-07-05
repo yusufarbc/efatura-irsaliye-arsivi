@@ -1,0 +1,35 @@
+name: Release
+
+# v* etiketi push'landığında Windows kurulum paketini (zip) derleyip
+# ilgili GitHub Release'e ekler. Release yoksa otomatik oluşturur.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Windows kurulum paketi
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Paketi derle
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-win.ps1
+      - name: Release'e ekle
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --title "$TAG" --generate-notes
+          fi
+          gh release upload "$TAG" dist/*.zip --clobber

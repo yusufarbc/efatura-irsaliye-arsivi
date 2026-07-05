@@ -3,6 +3,15 @@
   "version": "1.0.0",
   "description": "GİB e-Fatura/e-İrsaliye PDF arşiv ve sorgulama sistemi",
   "main": "src/server/app.js",
+  "author": "Yusuf Talha ARABACI",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufarbc/efatura-irsaliye-arsivi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yusufarbc/efatura-irsaliye-arsivi/issues"
+  },
+  "homepage": "https://github.com/yusufarbc/efatura-irsaliye-arsivi#readme",
   "scripts": {
     "start": "node --experimental-sqlite src/server/app.js",
     "test": "node --experimental-sqlite --test test/*.test.js",
@@ -13,7 +22,8 @@
     "task:install-ingest": "node scripts/ingest-task-install.js",
     "task:uninstall-ingest": "node scripts/ingest-task-uninstall.js",
     "task:install-backup": "node scripts/backup-task-install.js",
-    "task:uninstall-backup": "node scripts/backup-task-uninstall.js"
+    "task:uninstall-backup": "node scripts/backup-task-uninstall.js",
+    "pack:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-win.ps1"
   },
   "dependencies": {
     "express": "^4.18.2"

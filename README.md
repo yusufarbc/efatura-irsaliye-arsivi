@@ -1,4 +1,9 @@
-# efatura-irsaliye-arsivi
+# e-Fatura / e-İrsaliye Arşivi
+
+[![CI](https://github.com/yusufarbc/efatura-irsaliye-arsivi/actions/workflows/ci.yml/badge.svg)](https://github.com/yusufarbc/efatura-irsaliye-arsivi/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/yusufarbc/efatura-irsaliye-arsivi)](https://github.com/yusufarbc/efatura-irsaliye-arsivi/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A522.5-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 
 OCR kullanmadan e-Fatura ve e-İrsaliye PDF'lerini (GİB resmi "yazdırılabilir
 görünüm" formatı) parse edip SQLite veritabanına kaydeden, web arayüzünden
@@ -54,6 +59,18 @@ OCR (Tesseract vb.) hem gereksizdir hem de daha hataya açık bir yaklaşım olu
 - Vanilla HTML + CSS + JS (framework'süz frontend)
 
 ## Kurulum
+
+### Windows — hazır kurulum paketi (önerilen)
+
+1. [Son sürümü indirin](https://github.com/yusufarbc/efatura-irsaliye-arsivi/releases/latest)
+   (`efatura-irsaliye-arsivi-*-windows.zip`) — tüm bağımlılıklar pakete dahildir.
+2. Kalıcı bir klasöre çıkarın (ör. `C:\EFaturaArsivi`).
+3. **`KUR.bat`** dosyasına çift tıklayın; sihirbaz ön koşulları (Node.js,
+   poppler) denetler ve isterseniz Windows servisi olarak kurar.
+
+Ayrıntılar paketteki `KURULUM.md` dosyasındadır.
+
+### Kaynaktan kurulum
 
 ```bash
 # 1. Node.js 22.5+ gereklidir (node:sqlite için)
@@ -162,12 +179,19 @@ npm run task:uninstall-ingest
 Detaylı mimari, veritabanı şeması ve geliştirme yol haritası için bkz.
 [`PROJECT_SPEC.md`](./PROJECT_SPEC.md).
 
+## Katkı
+
+Katkılar memnuniyetle karşılanır — özellikle yeni entegratör şablonları
+(extractor). Başlamak için [`CONTRIBUTING.md`](./CONTRIBUTING.md)'ye,
+güvenlik açığı bildirimi için [`SECURITY.md`](./SECURITY.md)'ye bakın.
+
 ## Lisans
 
 MIT — bkz. [`LICENSE`](./LICENSE).
 
-## Not
+## KVKK notu
 
 Bu sistem KVKK kapsamında kişisel veri (VKN/TCKN, ad-soyad, adres vb.) işler.
-Repoyu **private** tutmanız ve örnek/test belgelerinde gerçek kişisel veri
-kullanmamanız (veya maskeleme yapmanız) önerilir.
+Veritabanı ve belge klasörleri depoya dahil edilmez (`.gitignore`); katkılarda
+gerçek kişisel veri içeren örnek/test belgeleri kullanmayın — fixture'lar
+maskelenmiş olmalıdır.
