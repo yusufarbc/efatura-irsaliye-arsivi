@@ -2,7 +2,9 @@
 
 OCR kullanmadan e-Fatura ve e-İrsaliye PDF'lerini (GİB resmi "yazdırılabilir
 görünüm" formatı) parse edip SQLite veritabanına kaydeden, web arayüzünden
-**read-only** sorgulanabilen muhasebe belge arşivi sistemi.
+sorgulanabilen muhasebe belge arşivi sistemi. Panel varsayılan olarak
+**read-only** çalışır; hatalı parse'ları düzeltmek için açılıp kapatılabilen
+bir **Düzenleme Modu** vardır.
 
 ## Neden OCR yok?
 
@@ -18,10 +20,31 @@ OCR (Tesseract vb.) hem gereksizdir hem de daha hataya açık bir yaklaşım olu
   şablon farklılıklarına uyum sağlayan adapter tabanlı parser mimarisi
 - Kalem toplamlarının fatura geneliyle tutarlılık kontrolü (otomatik doğrulama)
 - Toplu (batch) PDF işleme — bir klasördeki yüzlerce belgeyi tek seferde içe aktarma
+- Panelden PDF yükleme: **PDF Yükle** sekmesine sürükle-bırak ile tek/çoklu
+  belge yüklenir, aynı parse hattından geçip sonucu (başarılı/şüpheli/hatalı/
+  tanınmayan) anında gösterilir; dosyalar `data/uploads/` altında saklanır
 - SQLite veritabanı, sorgulanabilir yapı (belge no, tarih, satıcı/alıcı, ürün/hizmet
-  açıklaması bazlı arama)
-- Web arayüzünden **sadece okuma** (read-only) erişim — veri girişi yalnızca CLI
-  üzerinden yapılır, arayüzden hiçbir yazma/silme işlemi yapılamaz
+  açıklaması bazlı arama; Türkçe harf duyarsız — "güvenlik" araması "GÜVENLİK"i bulur)
+- Web arayüzü varsayılan olarak **read-only**; sağ üstteki **Düzenleme Modu**
+  açıldığında hatalı parse'lar panelden düzeltilebilir:
+  - Belge başlığı alanlarını güncelleme (belge no, tarihler, tutarlar, parse durumu…)
+  - Kalem ekleme / düzenleme / silme, belge silme
+  - Taraf (satıcı/alıcı) bilgisi düzeltme — o tarafın geçtiği tüm belgelere yansır
+  - **Yeniden Doğrula**: düzeltme sonrası kalem toplamlarının başlıkla tutup
+    tutmadığını kontrol edip parse durumunu günceller
+- Gözden geçirme kuyruğu: ŞÜPHELİ/HATALI belgeler sekme rozetiyle takip edilir
+
+## Güvenlik notları
+
+- Sunucu varsayılan olarak yalnızca `127.0.0.1`'e bağlanır (DB kişisel veri
+  içerir). Ağdaki başka makinelere açmak bilinçli bir tercih olmalı:
+  `HOST=0.0.0.0 npm start` (Windows servisi ise varsayılan olarak ağa açık
+  kurulur — bkz. Deployment).
+- `PANEL_USER` + `PANEL_PASS` ortam değişkenleri ayarlanırsa panel HTTP Basic
+  Auth ile parola ister — ağa açık kurulumda önerilir.
+- Yazma isteklerinde same-origin (CSRF) kontrolü yapılır; tüm yazma alanları
+  whitelist + tip doğrulamasından geçer.
+- Arama girdilerindeki `%`/`_` LIKE joker karakterleri etkisizleştirilir.
 
 ## Teknoloji
 
@@ -58,29 +81,70 @@ npm run ingest -- --dir ./belgeler
 # Önce denemek istersen (DB'ye yazmadan)
 npm run ingest -- --dir ./belgeler --dry-run
 
-# Web arayüzünü başlat → http://localhost:3000
+# Web arayüzünü başlat → http://localhost:8888
 npm start
 ```
 
-## Windows'ta Servis Olarak Çalıştırma
+## Deployment (Windows servis + kurum ağı + OneDrive yedeği)
+
+### 1. Servis kurulumu
 
 Web sunucusunun bilgisayar her açıldığında otomatik başlaması için
-`node-windows` ile Windows Service olarak kaydedilebilir. Aşağıdaki komutlar
-**Yönetici (Administrator)** PowerShell'den çalıştırılmalıdır:
+`node-windows` ile Windows Service olarak kaydedilir. Normal (yükseltilmemiş)
+bir terminalden çalıştırılabilir — kurulum kendini **tek bir UAC onayıyla**
+yönetici olarak yeniden başlatır:
 
 ```powershell
-# Servisi kur ve başlat (EFaturaArsivServisi)
+# Kurum ağına açık + parola korumalı kurulum (önerilen)
+$env:PANEL_USER='muhasebe'; $env:PANEL_PASS='guclu-bir-parola'
 npm run service:install
 
-# Servisi kaldır
+# Servisi kaldır (ayar değiştirmek için önce kaldırıp yeniden kurun)
 npm run service:uninstall
 ```
 
-Kurulum farklı bir port istiyorsa: `$env:PORT=3001; npm run service:install`
+Servis varsayılan olarak `HOST=0.0.0.0` ile kurulur — kurum ağındaki diğer
+bilgisayarlar `http://<bu-makinenin-ip'si>:8888` adresinden erişir. Yalnızca
+bu makineden erişim istenirse: `$env:HOST='127.0.0.1'; npm run service:install`.
+Farklı port: `$env:PORT='3001'`.
 
-İsteğe bağlı olarak, `ingestRunner.js`'i her gün belirli bir saatte otomatik
-çalıştırmak için Windows Görev Zamanlayıcı'ya (Task Scheduler) bir görev
-eklenebilir — bu sürekli çalışan bir servis değil, periyodik bir toplu iştir:
+> Not: geliştirme modu (`npm start`) güvenli varsayılanla yalnızca
+> 127.0.0.1'i dinler; ağa açılmak servise (veya `HOST` değişkenine) özeldir.
+
+### 2. Güvenlik duvarı (otomatik)
+
+Ağa açık kurulumda (`HOST=0.0.0.0`), yalnızca **yerel alt ağa** izin veren
+güvenlik duvarı kuralı (`EFaturaArsivi`, TCP 8888) kurulum sırasında otomatik
+eklenir; `service:uninstall` ile birlikte kaldırılır. Elle eklemek gerekirse:
+
+```powershell
+netsh advfirewall firewall add rule name="EFaturaArsivi" dir=in action=allow protocol=TCP localport=8888 remoteip=localsubnet
+```
+
+### 3. OneDrive yedeği
+
+Canlı `data/arsiv.sqlite` dosyasını doğrudan OneDrive klasörüne koymayın:
+WAL modunda verinin bir kısmı `-wal` dosyasındadır, OneDrive yazma sırasında
+senkronlarsa yedek bozuk olur ve dosya kilitleri "database is locked"
+hatalarına yol açar. Bunun yerine zamanlanmış görev, SQLite'ın kendi
+mekanizmasıyla (`VACUUM INTO`) tutarlı bir anlık görüntüyü
+`%OneDrive%\EFaturaArsivYedek` klasörüne yazar; OneDrive da onu buluta
+senkronlar:
+
+```powershell
+# Her gün 21:00'de yedek görevi kur (varsayılan 14 yedek tutulur, eskiler silinir)
+npm run task:install-backup
+
+# Farklı saat: $env:BACKUP_TIME='23:30'; npm run task:install-backup
+# Elle yedek almak için: npm run backup
+# Görevi kaldır: npm run task:uninstall-backup
+```
+
+### 4. Otomatik ingest (opsiyonel)
+
+`ingestRunner.js`'i her gün belirli bir saatte otomatik çalıştırmak için
+Windows Görev Zamanlayıcı'ya (Task Scheduler) bir görev eklenebilir — bu
+sürekli çalışan bir servis değil, periyodik bir toplu iştir:
 
 ```powershell
 # Varsayılan: her gün 07:00, ./belgeler klasörü

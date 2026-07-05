@@ -19,6 +19,10 @@ const VERGI_DAIRESI_RE = /Vergi Dairesi\s*:\s*(\S+(?:[ \t]+\S+)*?)(?:[ \t]{2,}|\
 function extract(text) {
   if (!text) return null;
 
+  // CRLF gelirse (Windows pdftotext, CRLF'li fixture dosyaları) regex'lerdeki
+  // \n / satır-sonu varsayımları bozulur — girişte normalize et.
+  text = text.replace(/\r\n?/g, '\n');
+
   // Temel tanıma: "E-Fatura" ve "Fatura No:" içermeli
   if (!/E-Fatura/i.test(text) || !/Fatura No:/i.test(text)) return null;
 

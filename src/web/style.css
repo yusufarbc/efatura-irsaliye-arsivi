@@ -2,9 +2,23 @@
 
 body { font-family: system-ui, sans-serif; font-size: 14px; background: #f5f5f5; color: #333; }
 
-header { background: #1a56a0; color: white; padding: 12px 20px; display: flex; align-items: center; gap: 24px; }
+header { background: #1a56a0; color: white; padding: 12px 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
 header h1 { font-size: 18px; font-weight: 600; }
 nav { display: flex; gap: 6px; }
+.header-right { margin-left: auto; }
+
+/* Düzenleme modu anahtarı */
+.edit-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; user-select: none; }
+.edit-toggle input { accent-color: #f59e0b; width: 16px; height: 16px; cursor: pointer; }
+body.edit-mode header { background: #92400e; }
+body.edit-mode .tab-btn.active { color: #92400e; }
+
+/* Gözden geçir rozet */
+.nav-badge {
+  display: inline-block; background: #ef4444; color: white; border-radius: 10px;
+  padding: 0 6px; font-size: 11px; font-weight: 700; margin-left: 4px; min-width: 18px; text-align: center;
+}
+.nav-badge.hidden { display: none; }
 
 .tab-btn {
   background: transparent; border: 1px solid rgba(255,255,255,0.5); color: white;
@@ -39,9 +53,20 @@ tr:last-child td { border-bottom: none; }
 tr:hover td { background: #f7f9fd; cursor: pointer; }
 
 .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-.badge-BASARILI { background: #d1fae5; color: #065f46; }
-.badge-SUPHELI  { background: #fef3c7; color: #92400e; }
-.badge-HATALI   { background: #fee2e2; color: #991b1b; }
+.badge-BASARILI   { background: #d1fae5; color: #065f46; }
+.badge-SUPHELI    { background: #fef3c7; color: #92400e; }
+.badge-HATALI     { background: #fee2e2; color: #991b1b; }
+.badge-TANINMAYAN { background: #e5e7eb; color: #374151; }
+
+/* PDF yükleme alanı */
+#drop-zone {
+  background: white; border: 2px dashed #9ab1d0; border-radius: 10px;
+  padding: 44px 20px; text-align: center; cursor: pointer; margin-bottom: 16px;
+  transition: border-color 0.15s, background 0.15s;
+}
+#drop-zone:hover, #drop-zone.drag { border-color: #1a56a0; background: #f0f5fc; }
+.drop-baslik { font-size: 16px; font-weight: 600; color: #1a56a0; margin-bottom: 8px; }
+.drop-alt { font-size: 12px; color: #888; max-width: 520px; margin: 0 auto; }
 
 .pagination { margin-top: 10px; display: flex; gap: 6px; justify-content: flex-end; }
 .pagination button { background: white; border: 1px solid #ccc; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
@@ -74,3 +99,66 @@ tr:hover td { background: #f7f9fd; cursor: pointer; }
 .detail-grid dd { font-size: 13px; font-weight: 500; }
 
 .detail-section-title { font-size: 13px; font-weight: 600; color: #1a56a0; margin: 16px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+
+/* Sağa hizalı sayısal sütunlar */
+th.num, td.num { text-align: right; }
+
+/* Tıklanamayan satırlar (düzenleme formları, modal içi tablolar) */
+tr.no-click:hover td { background: inherit; cursor: default; }
+#modal tr:hover td { cursor: default; }
+
+.modal-baslik { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.notlar { font-size: 13px; color: #555; }
+.kaynak-dosya { margin-top: 14px; font-size: 12px; color: #aaa; word-break: break-all; }
+td.kaynak { font-size: 12px; color: #777; word-break: break-all; max-width: 260px; }
+.page-gap { color: #999; padding: 0 2px; align-self: center; }
+.info-kucuk { font-weight: 400; font-size: 11px; color: #999; }
+
+/* --- Düzenleme modu formları --- */
+.edit-uyari {
+  background: #fef3c7; border: 1px solid #f59e0b; color: #92400e;
+  border-radius: 6px; padding: 8px 12px; font-size: 12px; margin-bottom: 14px;
+}
+.edit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px 16px; margin-bottom: 10px; }
+.edit-alan { display: flex; flex-direction: column; gap: 3px; }
+.edit-alan span { font-size: 11px; color: #888; }
+.edit-alan input, .edit-alan select {
+  border: 1px solid #ccc; border-radius: 4px; padding: 5px 8px; font-size: 13px; width: 100%;
+}
+.edit-alan input:focus, .edit-alan select:focus { outline: 2px solid #1a56a0; outline-offset: -1px; }
+
+#modal button { font-size: 13px; }
+#modal button[data-action] {
+  background: #1a56a0; color: white; border: none; border-radius: 4px;
+  padding: 6px 14px; cursor: pointer; margin-top: 4px;
+}
+#modal button[data-action]:hover { filter: brightness(1.15); }
+.btn-yesil, #modal button.btn-yesil { background: #059669 !important; }
+.btn-kirmizi, #modal button.btn-kirmizi { background: #dc2626 !important; }
+.btn-gri, #modal button.btn-gri, .filters .btn-gri { background: #666 !important; }
+.btn-kucuk, #modal button.btn-kucuk { padding: 3px 9px !important; font-size: 12px !important; }
+
+.row-actions { white-space: nowrap; }
+.row-actions button {
+  background: #1a56a0; color: white; border: none; border-radius: 4px;
+  padding: 3px 9px; font-size: 12px; cursor: pointer; margin-right: 4px;
+}
+
+#edit-items-table input { border: 1px solid #ccc; border-radius: 4px; padding: 4px 6px; font-size: 12px; }
+tr.edit-row td { background: #fffbeb; }
+tr.edit-row input { border: 1px solid #ccc; border-radius: 4px; padding: 4px 6px; font-size: 12px; }
+
+.edit-eylemler {
+  margin-top: 20px; padding-top: 14px; border-top: 1px solid #e5e7eb;
+  display: flex; gap: 10px; justify-content: space-between;
+}
+
+/* --- Toast bildirimi --- */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,0.25); max-width: 90vw;
+}
+#toast.hidden { display: none; }
+#toast.toast-ok { background: #059669; color: white; }
+#toast.toast-error { background: #dc2626; color: white; }

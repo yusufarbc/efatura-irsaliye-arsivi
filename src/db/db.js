@@ -22,6 +22,15 @@ function getDb() {
   // WAL modu ve FK'ları etkinleştir
   _db.exec('PRAGMA journal_mode = WAL');
   _db.exec('PRAGMA foreign_keys = ON');
+  // Ingest + sunucu aynı anda yazarsa "database is locked" yerine 5 sn bekle
+  _db.exec('PRAGMA busy_timeout = 5000');
+
+  // SQLite'ın yerleşik lower() fonksiyonu yalnızca ASCII bilir; Türkçe
+  // İ/ı/Ş/Ğ... için harf duyarsız arama bu fonksiyonla yapılır:
+  //   WHERE tr_lower(kolon) LIKE tr_lower(?)
+  _db.function('tr_lower', { deterministic: true }, (s) =>
+    s == null ? null : String(s).toLocaleLowerCase('tr-TR')
+  );
 
   // schema.sql yalnızca gerçekten taze (boş) bir veritabanında bir kez
   // çalıştırılır. Sonraki tüm yapısal değişiklikler db/migrations/ altından

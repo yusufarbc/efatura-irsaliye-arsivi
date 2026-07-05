@@ -3,19 +3,25 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../../db/db');
+const { clampInt, likeContains } = require('../queryUtil');
 
 // GET /api/items?q=<metin>&limit=&offset=
 router.get('/', (req, res) => {
   const db = getDb();
-  const { q, limit = 50, offset = 0 } = req.query;
+  const { q } = req.query;
+  const limit = clampInt(req.query.limit, { def: 50, min: 1, max: 500 });
+  const offset = clampInt(req.query.offset, { def: 0, min: 0, max: 1e9 });
 
   if (!q || q.trim().length < 2) {
     return res.status(400).json({ error: 'q parametresi en az 2 karakter olmalı' });
   }
 
-  const pattern = `%${q.trim()}%`;
+  // tr_lower: Türkçe harf duyarsız arama ("güvenlik" → "GÜVENLİK" bulunur)
+  const pattern = likeContains(q);
+  const whereSql = "tr_lower(i.aciklama) LIKE tr_lower(?) ESCAPE '\\'";
+
   const countRow = db.prepare(
-    "SELECT COUNT(*) as total FROM items WHERE aciklama LIKE ?"
+    `SELECT COUNT(*) as total FROM items i WHERE ${whereSql}`
   ).get(pattern);
 
   const rows = db.prepare(`
@@ -27,12 +33,12 @@ router.get('/', (req, res) => {
     JOIN documents d ON d.id = i.document_id
     LEFT JOIN taraflar s ON s.id = d.satici_id
     LEFT JOIN taraflar a ON a.id = d.alici_id
-    WHERE i.aciklama LIKE ?
+    WHERE ${whereSql}
     ORDER BY d.duzenleme_tarihi DESC, d.id DESC
     LIMIT ? OFFSET ?
-  `).all(pattern, parseInt(limit), parseInt(offset));
+  `).all(pattern, limit, offset);
 
-  res.json({ total: countRow.total, limit: parseInt(limit), offset: parseInt(offset), data: rows });
+  res.json({ total: countRow.total, limit, offset, data: rows });
 });
 
 module.exports = router;

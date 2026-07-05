@@ -3,6 +3,11 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../../db/db');
+const { clampInt, likeContains } = require('../queryUtil');
+
+const BELGE_TIPLERI = new Set(['FATURA', 'IRSALIYE']);
+const PARSE_DURUMLARI = new Set(['BASARILI', 'SUPHELI', 'HATALI']);
+const ISO_TARIH_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // GET /api/documents
 // Query params: tarih_baslangic, tarih_bitis, belge_tipi, satici, alici, belge_no, parse_durumu, limit, offset
@@ -16,20 +21,38 @@ router.get('/', (req, res) => {
     alici,
     belge_no,
     parse_durumu,
-    limit = 50,
-    offset = 0,
   } = req.query;
+
+  const limit = clampInt(req.query.limit, { def: 50, min: 1, max: 500 });
+  const offset = clampInt(req.query.offset, { def: 0, min: 0, max: 1e9 });
 
   const conditions = [];
   const positional = [];
 
-  if (tarih_baslangic) { conditions.push('d.duzenleme_tarihi >= ?'); positional.push(tarih_baslangic); }
-  if (tarih_bitis)     { conditions.push('d.duzenleme_tarihi <= ?'); positional.push(tarih_bitis); }
-  if (belge_tipi)      { conditions.push('d.belge_tipi = ?');        positional.push(belge_tipi.toUpperCase()); }
-  if (satici)          { conditions.push('s.unvan LIKE ?');          positional.push(`%${satici}%`); }
-  if (alici)           { conditions.push('a.unvan LIKE ?');          positional.push(`%${alici}%`); }
-  if (belge_no)        { conditions.push('d.belge_no LIKE ?');       positional.push(`%${belge_no}%`); }
-  if (parse_durumu)    { conditions.push('d.parse_durumu = ?');      positional.push(parse_durumu.toUpperCase()); }
+  if (tarih_baslangic && ISO_TARIH_RE.test(tarih_baslangic)) {
+    conditions.push('d.duzenleme_tarihi >= ?'); positional.push(tarih_baslangic);
+  }
+  if (tarih_bitis && ISO_TARIH_RE.test(tarih_bitis)) {
+    conditions.push('d.duzenleme_tarihi <= ?'); positional.push(tarih_bitis);
+  }
+  if (belge_tipi && BELGE_TIPLERI.has(belge_tipi.toUpperCase())) {
+    conditions.push('d.belge_tipi = ?'); positional.push(belge_tipi.toUpperCase());
+  }
+  if (satici) {
+    conditions.push("tr_lower(s.unvan) LIKE tr_lower(?) ESCAPE '\\'");
+    positional.push(likeContains(satici));
+  }
+  if (alici) {
+    conditions.push("tr_lower(a.unvan) LIKE tr_lower(?) ESCAPE '\\'");
+    positional.push(likeContains(alici));
+  }
+  if (belge_no) {
+    conditions.push("tr_lower(d.belge_no) LIKE tr_lower(?) ESCAPE '\\'");
+    positional.push(likeContains(belge_no));
+  }
+  if (parse_durumu && PARSE_DURUMLARI.has(parse_durumu.toUpperCase())) {
+    conditions.push('d.parse_durumu = ?'); positional.push(parse_durumu.toUpperCase());
+  }
 
   const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
   const joins = `
@@ -48,9 +71,9 @@ router.get('/', (req, res) => {
      ${joins} ${where}
      ORDER BY d.duzenleme_tarihi DESC, d.id DESC
      LIMIT ? OFFSET ?`
-  ).all(...positional, parseInt(limit), parseInt(offset));
+  ).all(...positional, limit, offset);
 
-  res.json({ total: countRow.total, limit: parseInt(limit), offset: parseInt(offset), data: rows });
+  res.json({ total: countRow.total, limit, offset, data: rows });
 });
 
 module.exports = router;

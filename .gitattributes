@@ -1,0 +1,3 @@
+# Test fixture'ları pdftotext'in LF çıktısını birebir temsil eder — CRLF'e çevrilmesin
+test/fixtures/* -text
+*.sql text eol=lf

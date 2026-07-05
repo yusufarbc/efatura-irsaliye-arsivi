@@ -7,10 +7,13 @@
     "start": "node --experimental-sqlite src/server/app.js",
     "test": "node --experimental-sqlite --test test/*.test.js",
     "ingest": "node --experimental-sqlite src/ingest/ingestRunner.js",
+    "backup": "node --experimental-sqlite scripts/backup-db.js",
     "service:install": "node scripts/service-install.js",
     "service:uninstall": "node scripts/service-uninstall.js",
     "task:install-ingest": "node scripts/ingest-task-install.js",
-    "task:uninstall-ingest": "node scripts/ingest-task-uninstall.js"
+    "task:uninstall-ingest": "node scripts/ingest-task-uninstall.js",
+    "task:install-backup": "node scripts/backup-task-install.js",
+    "task:uninstall-backup": "node scripts/backup-task-uninstall.js"
   },
   "dependencies": {
     "express": "^4.18.2"
