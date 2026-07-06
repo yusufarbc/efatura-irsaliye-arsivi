@@ -227,7 +227,7 @@ async function loadKalemArama(page = 0) {
       <p class="info">${json.total.toLocaleString('tr-TR')} kalem bulundu (bu sayfadaki tutar toplamı: ${fmtPara(toplamTutar)} TL).</p>
       <table>
         <thead>
-          <tr><th>Belge No</th><th>Tarih</th><th>Satıcı</th><th>Açıklama</th><th class="num">Miktar</th><th class="num">Birim Fiyat</th><th class="num">Satış Fiyatı</th><th class="num">KDV%</th><th class="num">Tutar</th></tr>
+          <tr><th>Belge No</th><th>Tarih</th><th>Satıcı</th><th>Açıklama</th><th class="num">Miktar</th><th class="num">Birim Fiyat</th><th class="num">KDV%</th><th class="num">Tutar</th><th class="num satis-fiyati" title="Kar oranına göre tarayıcıda hesaplanır; kayıtlı veri değildir">Satış Fiyatı</th></tr>
         </thead>
         <tbody>
           ${json.data.map((i) => {
@@ -240,9 +240,9 @@ async function loadKalemArama(page = 0) {
                 <td>${hucre(i.aciklama)}</td>
                 <td class="num">${i.miktar != null ? esc(String(i.miktar)) : '-'} ${hucre(i.birim) === '-' ? '' : hucre(i.birim)}</td>
                 <td class="num">${i.birim_fiyat != null ? fmtPara(i.birim_fiyat) : '-'}</td>
-                <td class="num">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
                 <td class="num">${i.kdv_orani != null ? '%' + esc(String(i.kdv_orani)) : '-'}</td>
                 <td class="num">${i.mal_hizmet_tutari != null ? fmtPara(i.mal_hizmet_tutari) : '-'}</td>
+                <td class="num satis-fiyati">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
               </tr>`;
           }).join('')}
         </tbody>
@@ -562,7 +562,7 @@ function renderDetail(d) {
     ${d.items.length ? `
       <table>
         <thead>
-          <tr><th>#</th><th>Açıklama</th><th class="num">Miktar</th><th>Birim</th><th class="num">Birim Fiyat</th><th class="num">Satış Fiyatı</th><th class="num">KDV%</th><th class="num">KDV Tutarı</th><th class="num">Tutar</th></tr>
+          <tr><th>#</th><th>Açıklama</th><th class="num">Miktar</th><th>Birim</th><th class="num">Birim Fiyat</th><th class="num">KDV%</th><th class="num">KDV Tutarı</th><th class="num">Tutar</th><th class="num satis-fiyati" title="Kar oranına göre tarayıcıda hesaplanır; kayıtlı veri değildir">Satış Fiyatı</th></tr>
         </thead>
         <tbody>
           ${d.items.map((i) => {
@@ -574,10 +574,10 @@ function renderDetail(d) {
                 <td class="num">${i.miktar != null ? esc(String(i.miktar)) : '-'}</td>
                 <td>${hucre(i.birim)}</td>
                 <td class="num">${i.birim_fiyat != null ? fmtPara(i.birim_fiyat) : '-'}</td>
-                <td class="num">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
                 <td class="num">${i.kdv_orani != null ? '%' + esc(String(i.kdv_orani)) : '-'}</td>
                 <td class="num">${i.kdv_tutari != null ? fmtPara(i.kdv_tutari) : '-'}</td>
                 <td class="num">${i.mal_hizmet_tutari != null ? fmtPara(i.mal_hizmet_tutari) : '-'}</td>
+                <td class="num satis-fiyati">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
               </tr>`;
           }).join('')}
         </tbody>
@@ -639,7 +639,7 @@ function renderDetailEdit(d) {
     <p class="detail-section-title">Kalemler (${d.items.length})</p>
     <table id="edit-items-table">
       <thead>
-        <tr><th>#</th><th>Açıklama</th><th>Miktar</th><th>Birim</th><th>Birim Fiyat</th><th>Satış Fiyatı</th><th>KDV%</th><th>KDV Tutarı</th><th>Tutar</th><th></th></tr>
+        <tr><th>#</th><th>Açıklama</th><th>Miktar</th><th>Birim</th><th>Birim Fiyat</th><th>KDV%</th><th>KDV Tutarı</th><th>Tutar</th><th class="satis-fiyati" title="Kar oranına göre tarayıcıda hesaplanır; kayıtlı veri değildir">Satış Fiyatı</th><th></th></tr>
       </thead>
       <tbody>
         ${d.items.map((i) => kalemSatiri(i)).join('')}
@@ -687,10 +687,10 @@ function kalemSatiri(i) {
       <td>${inp('miktar', i.miktar, 60)}</td>
       <td>${inp('birim', i.birim, 60)}</td>
       <td>${inp('birim_fiyat', i.birim_fiyat, 80)}</td>
-      <td class="num" style="padding-top: 11px; font-weight: 600;">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
       <td>${inp('kdv_orani', i.kdv_orani, 50)}</td>
       <td>${inp('kdv_tutari', i.kdv_tutari, 80)}</td>
       <td>${inp('mal_hizmet_tutari', i.mal_hizmet_tutari, 90)}</td>
+      <td class="num satis-fiyati">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
       <td class="row-actions">
         <button class="btn-kucuk btn-yesil" data-action="kalem-kaydet">Kaydet</button>
         <button class="btn-kucuk btn-kirmizi" data-action="kalem-sil">Sil</button>

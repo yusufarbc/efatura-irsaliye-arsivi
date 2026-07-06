@@ -51,6 +51,20 @@ npm run task:install-backup
 $env:INGEST_DIR="D:\belgeler"; npm run task:install-ingest
 ```
 
+## Güncelleme (yeni sürüme geçiş)
+
+Servis ayarları kurulum anında servise gömülür; sonradan değiştirmek veya
+yeni sürüme geçmek için servis kaldırılıp yeniden kurulur:
+
+1. Yeni sürüm zip'ini ayrı bir klasöre çıkarın (eski klasörün üzerine yazmayın).
+2. `data\` klasörünü (veritabanı + PDF'ler) eski kurulumdan yeni klasöre kopyalayın.
+3. Yeni klasörde `KUR.bat`'ı çalıştırın — servis zaten kuruluysa sihirbaz
+   sorar ve onayınızla eskisini kaldırıp yenisini kurar.
+
+> Not: `npm run service:uninstall` komutu, servisi **ilk kurduğunuz klasörden**
+> çalıştırıldığında sorunsuz çalışır. Sihirbaz eski servisi kaldıramazsa eski
+> kurulum klasöründe bu komutu çalıştırıp kurulumu tekrarlayın.
+
 ## Kaldırma
 
 ```powershell

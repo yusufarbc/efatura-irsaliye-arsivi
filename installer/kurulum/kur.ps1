@@ -72,6 +72,29 @@ switch ($secim) {
         Pop-Location
     }
     '2' {
+        # Eski kurulum varsa node-windows yeni ayarlari uygulamaz; once kaldirilmali
+        $mevcutServis = Get-Service -Name 'EFaturaArsivServisi' -ErrorAction SilentlyContinue
+        if ($mevcutServis) {
+            Write-Host ""
+            Write-Host "[UYARI] EFaturaArsivServisi zaten kurulu (durum: $($mevcutServis.Status))." -ForegroundColor Yellow
+            Write-Host "Ayar degistirmek veya guncellemek icin once kaldirilmasi gerekir."
+            $kaldir = Read-Host "Mevcut servis kaldirilip yeni ayarlarla kurulsun mu? (E/h)"
+            if ($kaldir -eq 'h' -or $kaldir -eq 'H') {
+                Write-Host "Mevcut servis degistirilmedi; kurulum iptal edildi."
+                break
+            }
+            Push-Location $root
+            npm run service:uninstall
+            Pop-Location
+            Start-Sleep -Seconds 2
+            if (Get-Service -Name 'EFaturaArsivServisi' -ErrorAction SilentlyContinue) {
+                Write-Host "[HATA] Servis kaldirilamadi - buyuk ihtimalle baska bir klasorden kurulmustu." -ForegroundColor Red
+                Write-Host "Servisi ILK kurdugunuz klasorde 'npm run service:uninstall' calistirin,"
+                Write-Host "sonra bu kurulumu tekrar baslatin."
+                exit 1
+            }
+            Write-Host "[OK] Eski servis kaldirildi." -ForegroundColor Green
+        }
         Write-Host ""
         Write-Host "Servis kurum agina acik kurulur (HOST=0.0.0.0)." -ForegroundColor Yellow
         Write-Host "Agdaki diger bilgisayarlar erisebilecegi icin panel parolasi onerilir."
@@ -93,9 +116,18 @@ switch ($secim) {
         if ($LASTEXITCODE -eq 0) {
             Write-Host ""
             Write-Host "[OK] Servis kuruldu. Panel: http://localhost:8888" -ForegroundColor Green
+            $ipler = @()
+            if ($env:HOST -ne '127.0.0.1') {
+                $ipler = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+                    Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } |
+                    Select-Object -ExpandProperty IPAddress)
+                foreach ($ip in $ipler) { Write-Host "Agdaki diger bilgisayarlar: http://${ip}:8888" }
+            }
             if ($env:SECRET_PATH) {
-                Write-Host "Gizli yol aktif - panele ilk erisim: http://localhost:8888/$($env:SECRET_PATH)" -ForegroundColor Yellow
-                Write-Host "Bu adresi not edin; ziyaret etmeyen tarayicilar 404 gorur."
+                Write-Host "Gizli yol aktif - panele ilk erisim (tarayici basina bir kez):" -ForegroundColor Yellow
+                Write-Host "  bu bilgisayardan : http://localhost:8888/$($env:SECRET_PATH)"
+                foreach ($ip in $ipler) { Write-Host "  agdaki digerleri : http://${ip}:8888/$($env:SECRET_PATH)" }
+                Write-Host "Bu adresleri not edin; ziyaret etmeyen tarayicilar 404 gorur."
             }
             Write-Host "Kaldirmak icin bu klasorde: npm run service:uninstall"
         } else {

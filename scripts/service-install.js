@@ -15,6 +15,7 @@
 // HOST=0.0.0.0 (varsayılan) ise, yalnızca yerel alt ağa izin veren güvenlik
 // duvarı kuralı da otomatik eklenir (zaten yönetici yetkisiyle çalışıyoruz).
 
+const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { Service } = require('node-windows');
@@ -58,20 +59,46 @@ svc.on('install', () => {
 });
 
 svc.on('alreadyinstalled', () => {
-  console.log('Servis zaten kurulu. Ayar değiştirmek için önce: npm run service:uninstall');
+  console.error('HATA: Servis zaten kurulu — yeni ayarlar UYGULANMADI.');
+  console.error('Güncellemek için servisi ilk kurduğunuz klasörde önce kaldırın:');
+  console.error('  npm run service:uninstall');
+  console.error('sonra bu kurulumu yeniden çalıştırın.');
+  process.exitCode = 1;
 });
+
+// Ağdaki diğer makinelerin kullanacağı gerçek IPv4 adresleri (localhost hariç)
+function yerelIPler() {
+  const out = [];
+  for (const arr of Object.values(os.networkInterfaces())) {
+    for (const i of arr || []) {
+      if (i.family === 'IPv4' && !i.internal && !i.address.startsWith('169.254.')) {
+        out.push(i.address);
+      }
+    }
+  }
+  return out;
+}
 
 svc.on('start', () => {
   console.log(`Servis çalışıyor: http://localhost:${PORT} (bind: ${HOST})`);
   console.log('Bilgisayar her açıldığında otomatik başlayacak.');
+  const agdan = HOST === '0.0.0.0';
   if (process.env.SECRET_PATH) {
-    console.log(`Gizli yol aktif — panele ilk erişim: http://localhost:${PORT}/${process.env.SECRET_PATH}`);
+    console.log('Gizli yol aktif — panele ilk erişim:');
+    console.log(`  bu bilgisayardan : http://localhost:${PORT}/${process.env.SECRET_PATH}`);
+    if (agdan) {
+      for (const ip of yerelIPler()) {
+        console.log(`  ağdaki diğerleri : http://${ip}:${PORT}/${process.env.SECRET_PATH}`);
+      }
+    }
     console.log('(Bu adresi ziyaret etmeyen tarayıcılar 404 görür; çerez 30 gün geçerlidir.)');
   }
-  if (HOST === '0.0.0.0') {
+  if (agdan) {
     kurGuvenlikDuvariKurali();
     console.log('');
-    console.log('Sunucu kurum ağına açık — diğer bilgisayarlar http://<bu-makinenin-ip\'si>:' + PORT + ' adresinden erişir.');
+    const ipler = yerelIPler();
+    const adres = ipler.length ? ipler.map((ip) => `http://${ip}:${PORT}`).join(' veya ') : `http://<bu-makinenin-ip'si>:${PORT}`;
+    console.log('Sunucu kurum ağına açık — diğer bilgisayarlar ' + adres + ' adresinden erişir.');
     if (!process.env.PANEL_USER) {
       console.log('UYARI: Parola KORUMASIZ kurulum yapıldı — DB kişisel veri içeriyor. Önerilen:');
       console.log("  npm run service:uninstall");
