@@ -67,6 +67,12 @@ yeni sürüme geçmek için servis kaldırılıp yeniden kurulur:
 
 ## Kaldırma
 
+**`KALDIR.bat`** dosyasına çift tıklayın — kurulu bileşenleri (servis,
+zamanlanmış görevler) bulur, onayınızı alıp kaldırır. **Verilerinize
+dokunmaz**: veritabanı ve PDF'ler `data\` klasöründe aynen kalır.
+
+Elle kaldırmayı tercih ederseniz:
+
 ```powershell
 npm run service:uninstall      # Windows servisini ve güvenlik duvarı kuralını kaldırır
 npm run task:uninstall-backup  # yedek görevini kaldırır

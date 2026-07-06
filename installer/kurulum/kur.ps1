@@ -89,8 +89,8 @@ switch ($secim) {
             Start-Sleep -Seconds 2
             if (Get-Service -Name 'EFaturaArsivServisi' -ErrorAction SilentlyContinue) {
                 Write-Host "[HATA] Servis kaldirilamadi - buyuk ihtimalle baska bir klasorden kurulmustu." -ForegroundColor Red
-                Write-Host "Servisi ILK kurdugunuz klasorde 'npm run service:uninstall' calistirin,"
-                Write-Host "sonra bu kurulumu tekrar baslatin."
+                Write-Host "Servisi ILK kurdugunuz klasordeki KALDIR.bat ile (yoksa orada"
+                Write-Host "'npm run service:uninstall' komutuyla) kaldirin, sonra bu kurulumu tekrar baslatin."
                 exit 1
             }
             Write-Host "[OK] Eski servis kaldirildi." -ForegroundColor Green
@@ -129,7 +129,7 @@ switch ($secim) {
                 foreach ($ip in $ipler) { Write-Host "  agdaki digerleri : http://${ip}:8888/$($env:SECRET_PATH)" }
                 Write-Host "Bu adresleri not edin; ziyaret etmeyen tarayicilar 404 gorur."
             }
-            Write-Host "Kaldirmak icin bu klasorde: npm run service:uninstall"
+            Write-Host "Kaldirmak icin: KALDIR.bat (verilere dokunmaz)"
         } else {
             Write-Host "[HATA] Servis kurulumu basarisiz. Ayrintilar yukarida." -ForegroundColor Red
             exit 1

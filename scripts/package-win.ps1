@@ -33,8 +33,9 @@ if (Test-Path $daemon) { Remove-Item -Recurse -Force $daemon }
 # Paketleme scriptinin kendisi son kullanıcı paketine gerekli değil
 Remove-Item (Join-Path $stage 'scripts\package-win.ps1') -ErrorAction SilentlyContinue
 
-# --- Kurulum sihirbazı ---
+# --- Kurulum sihirbazı ve kaldırma aracı ---
 Copy-Item (Join-Path $root 'installer\KUR.bat')    $stage
+Copy-Item (Join-Path $root 'installer\KALDIR.bat') $stage
 Copy-Item (Join-Path $root 'installer\KURULUM.md') $stage
 Copy-Item (Join-Path $root 'installer\kurulum')    (Join-Path $stage 'kurulum') -Recurse
 

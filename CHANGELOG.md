@@ -5,6 +5,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.1.0/) standardına,
 sürümleme [Semantic Versioning](https://semver.org/lang/tr/) kurallarına uyar.
 
+## [1.2.0] - 2026-07-06
+
+### Eklendi
+
+- **`KALDIR.bat` kaldırma aracı**: kurulu bileşenleri (Windows servisi,
+  otomatik ingest/yedek görevleri) tespit eder, onayla kaldırır. Verilere
+  dokunmaz — veritabanı ve PDF'ler `data\` klasöründe aynen kalır. Paket
+  zip'ine dahil edilir; KURULUM.md'nin Kaldırma bölümü buna göre güncellendi
+
 ## [1.1.2] - 2026-07-06
 
 ### Değişti
@@ -73,6 +82,7 @@ sürümleme [Semantic Versioning](https://semver.org/lang/tr/) kurallarına uyar
 - **Windows kurulum paketi**: sürüm eklerinde yayınlanan, bağımlılıkları
   paketlenmiş zip + etkileşimli kurulum sihirbazı (`KUR.bat`)
 
+[1.2.0]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/compare/v1.0.0...v1.1.0
