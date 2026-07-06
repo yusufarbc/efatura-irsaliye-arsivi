@@ -5,6 +5,14 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.1.0/) standardına,
 sürümleme [Semantic Versioning](https://semver.org/lang/tr/) kurallarına uyar.
 
+## [1.1.1] - 2026-07-06
+
+### Düzeltildi
+
+- `SECRET_PATH` artık Windows servis kurulumunda da destekleniyor: kurulum
+  sihirbazı (`KUR.bat`) gizli yolu soruyor, `service:install` değişkeni
+  servise gömüyor (1.1.0'da yalnızca `npm start` ile çalışıyordu)
+
 ## [1.1.0] - 2026-07-06
 
 ### Eklendi
@@ -47,5 +55,6 @@ sürümleme [Semantic Versioning](https://semver.org/lang/tr/) kurallarına uyar
 - **Windows kurulum paketi**: sürüm eklerinde yayınlanan, bağımlılıkları
   paketlenmiş zip + etkileşimli kurulum sihirbazı (`KUR.bat`)
 
+[1.1.1]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/releases/tag/v1.0.0

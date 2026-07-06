@@ -124,6 +124,10 @@ yönetici olarak yeniden başlatır:
 $env:PANEL_USER='muhasebe'; $env:PANEL_PASS='guclu-bir-parola'
 npm run service:install
 
+# İsteğe bağlı: paneli gizli yolun arkasına al (bkz. Güvenlik notları)
+$env:SECRET_PATH='benim-gizli-yolum'
+npm run service:install
+
 # Servisi kaldır (ayar değiştirmek için önce kaldırıp yeniden kurun)
 npm run service:uninstall
 ```

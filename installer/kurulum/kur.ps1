@@ -80,6 +80,11 @@ switch ($secim) {
             $env:PANEL_USER = Read-Host "Kullanici adi"
             $env:PANEL_PASS = Read-Host "Parola"
         }
+        Write-Host ""
+        Write-Host "Gizli yol: belirlenirse panel adresi gizlenir; paneli yalnizca"
+        Write-Host "http://<adres>/<gizli-yol> adresini bir kez ziyaret edenler gorebilir."
+        $gizliYol = Read-Host "Gizli yol belirleyin (bos birakirsaniz ozellik kapali kalir)"
+        if ($gizliYol) { $env:SECRET_PATH = $gizliYol }
         $sadeceYerel = Read-Host "Yalnizca bu bilgisayardan erisim olsun mu? (e/H)"
         if ($sadeceYerel -eq 'e' -or $sadeceYerel -eq 'E') { $env:HOST = '127.0.0.1' }
         Push-Location $root
@@ -88,6 +93,10 @@ switch ($secim) {
         if ($LASTEXITCODE -eq 0) {
             Write-Host ""
             Write-Host "[OK] Servis kuruldu. Panel: http://localhost:8888" -ForegroundColor Green
+            if ($env:SECRET_PATH) {
+                Write-Host "Gizli yol aktif - panele ilk erisim: http://localhost:8888/$($env:SECRET_PATH)" -ForegroundColor Yellow
+                Write-Host "Bu adresi not edin; ziyaret etmeyen tarayicilar 404 gorur."
+            }
             Write-Host "Kaldirmak icin bu klasorde: npm run service:uninstall"
         } else {
             Write-Host "[HATA] Servis kurulumu basarisiz. Ayrintilar yukarida." -ForegroundColor Red

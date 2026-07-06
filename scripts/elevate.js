@@ -19,7 +19,7 @@ const path = require('path');
 const { execFileSync, spawnSync } = require('child_process');
 
 // Yükseltilmiş kopyaya taşınacak yapılandırma değişkenleri
-const ENV_KEYS = ['PORT', 'HOST', 'PANEL_USER', 'PANEL_PASS', 'DB_PATH'];
+const ENV_KEYS = ['PORT', 'HOST', 'PANEL_USER', 'PANEL_PASS', 'SECRET_PATH', 'DB_PATH'];
 
 function isElevated() {
   try {

@@ -9,6 +9,7 @@
 //   HOST        → varsayılan 0.0.0.0 (kurum ağından, makinenin IP'siyle erişim).
 //                 Yalnızca bu makineden erişim için: $env:HOST='127.0.0.1'
 //   PANEL_USER / PANEL_PASS → ayarlanırsa panel parola ister (ağa açıkken önerilir)
+//   SECRET_PATH → ayarlanırsa panel gizlenir; ilk erişim /<SECRET_PATH> ziyaretiyle
 //   DB_PATH     → farklı bir veritabanı konumu
 //
 // HOST=0.0.0.0 (varsayılan) ise, yalnızca yerel alt ağa izin veren güvenlik
@@ -35,6 +36,9 @@ if (process.env.PANEL_USER && process.env.PANEL_PASS) {
   env.push({ name: 'PANEL_USER', value: process.env.PANEL_USER });
   env.push({ name: 'PANEL_PASS', value: process.env.PANEL_PASS });
 }
+if (process.env.SECRET_PATH) {
+  env.push({ name: 'SECRET_PATH', value: process.env.SECRET_PATH });
+}
 if (process.env.DB_PATH) {
   env.push({ name: 'DB_PATH', value: process.env.DB_PATH });
 }
@@ -60,6 +64,10 @@ svc.on('alreadyinstalled', () => {
 svc.on('start', () => {
   console.log(`Servis çalışıyor: http://localhost:${PORT} (bind: ${HOST})`);
   console.log('Bilgisayar her açıldığında otomatik başlayacak.');
+  if (process.env.SECRET_PATH) {
+    console.log(`Gizli yol aktif — panele ilk erişim: http://localhost:${PORT}/${process.env.SECRET_PATH}`);
+    console.log('(Bu adresi ziyaret etmeyen tarayıcılar 404 görür; çerez 30 gün geçerlidir.)');
+  }
   if (HOST === '0.0.0.0') {
     kurGuvenlikDuvariKurali();
     console.log('');
