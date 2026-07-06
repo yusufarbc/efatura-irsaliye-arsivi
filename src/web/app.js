@@ -68,6 +68,21 @@ editToggle.addEventListener('change', () => {
   if (aktifTab === 'taraflar') loadTaraflar();
 });
 
+// --- Kar Oranı Yönetimi ----------------------------------------------------
+let profitMargin = parseFloat(localStorage.getItem('profitMargin')) || 0;
+const marginInput = $('profit-margin-input');
+if (marginInput) {
+  marginInput.value = profitMargin;
+  marginInput.addEventListener('input', () => {
+    let val = parseFloat(marginInput.value);
+    if (isNaN(val) || val < 0) val = 0;
+    profitMargin = val;
+    localStorage.setItem('profitMargin', profitMargin);
+    if (currentDoc) openDetail(currentDoc.id); // modalı yeni kar oranıyla tazele
+    if (aktifTab === 'kalem-arama') loadKalemArama(kalemPage); // kalem aramayı tazele
+  });
+}
+
 // --- Tab yönetimi --------------------------------------------------------
 
 let aktifTab = 'belgeler';
@@ -212,20 +227,24 @@ async function loadKalemArama(page = 0) {
       <p class="info">${json.total.toLocaleString('tr-TR')} kalem bulundu (bu sayfadaki tutar toplamı: ${fmtPara(toplamTutar)} TL).</p>
       <table>
         <thead>
-          <tr><th>Belge No</th><th>Tarih</th><th>Satıcı</th><th>Açıklama</th><th class="num">Miktar</th><th class="num">Birim Fiyat</th><th class="num">KDV%</th><th class="num">Tutar</th></tr>
+          <tr><th>Belge No</th><th>Tarih</th><th>Satıcı</th><th>Açıklama</th><th class="num">Miktar</th><th class="num">Birim Fiyat</th><th class="num">Satış Fiyatı</th><th class="num">KDV%</th><th class="num">Tutar</th></tr>
         </thead>
         <tbody>
-          ${json.data.map((i) => `
-            <tr data-id="${i.document_id}">
-              <td>${hucre(i.belge_no)}</td>
-              <td>${hucre(i.duzenleme_tarihi)}</td>
-              <td>${hucre(i.satici_unvan)}</td>
-              <td>${hucre(i.aciklama)}</td>
-              <td class="num">${i.miktar != null ? esc(String(i.miktar)) : '-'} ${hucre(i.birim) === '-' ? '' : hucre(i.birim)}</td>
-              <td class="num">${i.birim_fiyat != null ? fmtPara(i.birim_fiyat) : '-'}</td>
-              <td class="num">${i.kdv_orani != null ? '%' + esc(String(i.kdv_orani)) : '-'}</td>
-              <td class="num">${i.mal_hizmet_tutari != null ? fmtPara(i.mal_hizmet_tutari) : '-'}</td>
-            </tr>`).join('')}
+          ${json.data.map((i) => {
+            const satisFiyati = i.birim_fiyat != null ? i.birim_fiyat * (1 + profitMargin / 100) : null;
+            return `
+              <tr data-id="${i.document_id}">
+                <td>${hucre(i.belge_no)}</td>
+                <td>${hucre(i.duzenleme_tarihi)}</td>
+                <td>${hucre(i.satici_unvan)}</td>
+                <td>${hucre(i.aciklama)}</td>
+                <td class="num">${i.miktar != null ? esc(String(i.miktar)) : '-'} ${hucre(i.birim) === '-' ? '' : hucre(i.birim)}</td>
+                <td class="num">${i.birim_fiyat != null ? fmtPara(i.birim_fiyat) : '-'}</td>
+                <td class="num">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
+                <td class="num">${i.kdv_orani != null ? '%' + esc(String(i.kdv_orani)) : '-'}</td>
+                <td class="num">${i.mal_hizmet_tutari != null ? fmtPara(i.mal_hizmet_tutari) : '-'}</td>
+              </tr>`;
+          }).join('')}
         </tbody>
       </table>`;
 
@@ -543,20 +562,24 @@ function renderDetail(d) {
     ${d.items.length ? `
       <table>
         <thead>
-          <tr><th>#</th><th>Açıklama</th><th class="num">Miktar</th><th>Birim</th><th class="num">Birim Fiyat</th><th class="num">KDV%</th><th class="num">KDV Tutarı</th><th class="num">Tutar</th></tr>
+          <tr><th>#</th><th>Açıklama</th><th class="num">Miktar</th><th>Birim</th><th class="num">Birim Fiyat</th><th class="num">Satış Fiyatı</th><th class="num">KDV%</th><th class="num">KDV Tutarı</th><th class="num">Tutar</th></tr>
         </thead>
         <tbody>
-          ${d.items.map((i) => `
-            <tr class="no-click">
-              <td>${hucre(i.sira_no)}</td>
-              <td>${hucre(i.aciklama)}</td>
-              <td class="num">${i.miktar != null ? esc(String(i.miktar)) : '-'}</td>
-              <td>${hucre(i.birim)}</td>
-              <td class="num">${i.birim_fiyat != null ? fmtPara(i.birim_fiyat) : '-'}</td>
-              <td class="num">${i.kdv_orani != null ? '%' + esc(String(i.kdv_orani)) : '-'}</td>
-              <td class="num">${i.kdv_tutari != null ? fmtPara(i.kdv_tutari) : '-'}</td>
-              <td class="num">${i.mal_hizmet_tutari != null ? fmtPara(i.mal_hizmet_tutari) : '-'}</td>
-            </tr>`).join('')}
+          ${d.items.map((i) => {
+            const satisFiyati = i.birim_fiyat != null ? i.birim_fiyat * (1 + profitMargin / 100) : null;
+            return `
+              <tr class="no-click">
+                <td>${hucre(i.sira_no)}</td>
+                <td>${hucre(i.aciklama)}</td>
+                <td class="num">${i.miktar != null ? esc(String(i.miktar)) : '-'}</td>
+                <td>${hucre(i.birim)}</td>
+                <td class="num">${i.birim_fiyat != null ? fmtPara(i.birim_fiyat) : '-'}</td>
+                <td class="num">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
+                <td class="num">${i.kdv_orani != null ? '%' + esc(String(i.kdv_orani)) : '-'}</td>
+                <td class="num">${i.kdv_tutari != null ? fmtPara(i.kdv_tutari) : '-'}</td>
+                <td class="num">${i.mal_hizmet_tutari != null ? fmtPara(i.mal_hizmet_tutari) : '-'}</td>
+              </tr>`;
+          }).join('')}
         </tbody>
       </table>` : '<p class="empty">Kalem bulunamadı.</p>'}
 
@@ -616,7 +639,7 @@ function renderDetailEdit(d) {
     <p class="detail-section-title">Kalemler (${d.items.length})</p>
     <table id="edit-items-table">
       <thead>
-        <tr><th>#</th><th>Açıklama</th><th>Miktar</th><th>Birim</th><th>Birim Fiyat</th><th>KDV%</th><th>KDV Tutarı</th><th>Tutar</th><th></th></tr>
+        <tr><th>#</th><th>Açıklama</th><th>Miktar</th><th>Birim</th><th>Birim Fiyat</th><th>Satış Fiyatı</th><th>KDV%</th><th>KDV Tutarı</th><th>Tutar</th><th></th></tr>
       </thead>
       <tbody>
         ${d.items.map((i) => kalemSatiri(i)).join('')}
@@ -656,6 +679,7 @@ function tarafEditBlok(baslik, prefix, d) {
 function kalemSatiri(i) {
   const inp = (f, v, w) =>
     `<input type="text" data-f="${f}" value="${v == null ? '' : esc(String(v))}" style="width:${w}px" />`;
+  const satisFiyati = i.birim_fiyat != null ? i.birim_fiyat * (1 + profitMargin / 100) : null;
   return `
     <tr data-item-id="${i.id || ''}" class="no-click">
       <td>${inp('sira_no', i.sira_no, 36)}</td>
@@ -663,6 +687,7 @@ function kalemSatiri(i) {
       <td>${inp('miktar', i.miktar, 60)}</td>
       <td>${inp('birim', i.birim, 60)}</td>
       <td>${inp('birim_fiyat', i.birim_fiyat, 80)}</td>
+      <td class="num" style="padding-top: 11px; font-weight: 600;">${satisFiyati != null ? fmtPara(satisFiyati) : '-'}</td>
       <td>${inp('kdv_orani', i.kdv_orani, 50)}</td>
       <td>${inp('kdv_tutari', i.kdv_tutari, 80)}</td>
       <td>${inp('mal_hizmet_tutari', i.mal_hizmet_tutari, 90)}</td>

@@ -5,6 +5,19 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.1.0/) standardına,
 sürümleme [Semantic Versioning](https://semver.org/lang/tr/) kurallarına uyar.
 
+## [1.1.0] - 2026-07-06
+
+### Eklendi
+
+- **Kar Oranı**: panelin sağ üstünden girilen yüzde ile kalem listelerinde ve
+  belge detayında hesaplanmış **Satış Fiyatı** sütunu gösterilir; tercih
+  tarayıcıda (localStorage) saklanır, veritabanına yazılmaz
+- **Gizli yol (`SECRET_PATH`)**: opsiyonel gizleme katmanı — ayarlanırsa yetki
+  çerezi olmayan tüm istekler 404 alır; panele ilk erişim
+  `/<SECRET_PATH>` ziyaretiyle yapılır ve 30 gün geçerli, gizli yoldan
+  türetilmiş (SHA-256) HttpOnly çerez verilir. Kimlik doğrulama yerine geçmez;
+  ağa açık kurulumda `PANEL_USER`/`PANEL_PASS` ile birlikte önerilir
+
 ## [1.0.0] - 2026-07-05
 
 İlk kararlı sürüm. 🎉
@@ -34,4 +47,5 @@ sürümleme [Semantic Versioning](https://semver.org/lang/tr/) kurallarına uyar
 - **Windows kurulum paketi**: sürüm eklerinde yayınlanan, bağımlılıkları
   paketlenmiş zip + etkileşimli kurulum sihirbazı (`KUR.bat`)
 
+[1.1.0]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/yusufarbc/efatura-irsaliye-arsivi/releases/tag/v1.0.0

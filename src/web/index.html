@@ -17,6 +17,10 @@
       <button class="tab-btn" data-tab="gozden-gecir">Gözden Geçir <span id="gozden-badge" class="nav-badge hidden"></span></button>
     </nav>
     <div class="header-right">
+      <div class="margin-control" title="Kar Oranı: Alış fiyatı üzerine eklenecek kar yüzdesini belirler (tarayıcıda saklanır)">
+        <label for="profit-margin-input">Kar Oranı (%):</label>
+        <input type="number" id="profit-margin-input" min="0" max="1000" step="1" value="0" />
+      </div>
       <label class="edit-toggle" title="Düzenleme modu: hatalı parse edilen verileri panelden düzeltmenizi sağlar">
         <input type="checkbox" id="edit-mode-toggle" />
         <span>Düzenleme Modu</span>

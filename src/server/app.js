@@ -12,6 +12,53 @@ const HOST = process.env.HOST || '127.0.0.1';
 app.disable('x-powered-by');
 app.use(express.json({ limit: '1mb' }));
 
+// Opsiyonel gizleme katmanı (Secret Path / Cookie): SECRET_PATH ayarlanmışsa
+// panel yalnızca /<SECRET_PATH> adresini ziyaret edip yetki çerezi alanlara
+// açılır; diğer tüm istekler 404 döner. Çerez değeri koddan tahmin
+// edilemesin diye gizli yoldan türetilir. Bu bir kimlik doğrulama değildir;
+// ağa açık kurulumda PANEL_USER/PANEL_PASS ile birlikte kullanılmalıdır.
+const SECRET_PATH = process.env.SECRET_PATH;
+if (SECRET_PATH) {
+  const { createHash } = require('crypto');
+  const yetkiToken = createHash('sha256')
+    .update(`efatura-yetki:${SECRET_PATH}`)
+    .digest('hex')
+    .slice(0, 32);
+
+  app.use((req, res, next) => {
+    // 1. Adım: Yetkilendirme Girişi
+    if (req.path === `/${SECRET_PATH}` || req.path === `/${SECRET_PATH}/`) {
+      res.setHeader(
+        'Set-Cookie',
+        `yetki_karti=${yetkiToken}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax`
+      );
+      return res.redirect('/');
+    }
+
+    // 2. Adım: Çerez Kontrolü
+    const cookieHeader = req.headers.cookie;
+    let isAuthorized = false;
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';');
+      for (let cookie of cookies) {
+        const [key, val] = cookie.trim().split('=');
+        if (key === 'yetki_karti' && val === yetkiToken) {
+          isAuthorized = true;
+          break;
+        }
+      }
+    }
+
+    if (!isAuthorized) {
+      // Yetkisiz isteklere 404 dönerek sistemi gizle
+      return res.status(404).send('Not Found');
+    }
+
+    next();
+  });
+}
+
+
 // Opsiyonel parola koruması: PANEL_USER + PANEL_PASS ayarlanmışsa tüm
 // istekler HTTP Basic Auth ister. Panel kurum ağına (HOST=0.0.0.0) açılıyorsa
 // kullanılması önerilir — DB kişisel veri içerir ve düzenleme modu vardır.

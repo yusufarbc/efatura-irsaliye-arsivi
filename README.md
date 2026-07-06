@@ -38,6 +38,9 @@ OCR (Tesseract vb.) hem gereksizdir hem de daha hataya açık bir yaklaşım olu
   - **Yeniden Doğrula**: düzeltme sonrası kalem toplamlarının başlıkla tutup
     tutmadığını kontrol edip parse durumunu günceller
 - Gözden geçirme kuyruğu: ŞÜPHELİ/HATALI belgeler sekme rozetiyle takip edilir
+- **Kar Oranı**: sağ üstten girilen yüzde, alış (birim) fiyatının yanında
+  hesaplanmış **Satış Fiyatı** sütunu olarak kalem listelerinde ve belge
+  detayında gösterilir; tercih tarayıcıda saklanır, veritabanına yazılmaz
 
 ## Güvenlik notları
 
@@ -47,6 +50,11 @@ OCR (Tesseract vb.) hem gereksizdir hem de daha hataya açık bir yaklaşım olu
   kurulur — bkz. Deployment).
 - `PANEL_USER` + `PANEL_PASS` ortam değişkenleri ayarlanırsa panel HTTP Basic
   Auth ile parola ister — ağa açık kurulumda önerilir.
+- `SECRET_PATH` ortam değişkeni ayarlanırsa panel gizlenir: yetki çerezi
+  olmayan tüm istekler 404 alır; panele ilk erişim `http://<adres>/<SECRET_PATH>`
+  ziyaretiyle yapılır (30 gün geçerli çerez verilip ana sayfaya yönlendirilir).
+  Bu bir gizleme katmanıdır, kimlik doğrulama yerine geçmez — ağa açık
+  kurulumda `PANEL_USER`/`PANEL_PASS` ile birlikte kullanın.
 - Yazma isteklerinde same-origin (CSRF) kontrolü yapılır; tüm yazma alanları
   whitelist + tip doğrulamasından geçer.
 - Arama girdilerindeki `%`/`_` LIKE joker karakterleri etkisizleştirilir.
